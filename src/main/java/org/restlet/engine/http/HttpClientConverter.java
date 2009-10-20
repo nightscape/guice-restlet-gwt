@@ -136,14 +136,17 @@ public class HttpClientConverter extends HttpConverter {
         }
     }
 
+	private final CookieUtils	cookieUtils;
+
     /**
      * Constructor.
      * 
      * @param context
      *            The context to use.
      */
-    public HttpClientConverter(Context context) {
+    public HttpClientConverter(Context context,CookieUtils cookieUtils) {
         super(context);
+        this.cookieUtils = cookieUtils;
     }
 
     /**
@@ -236,7 +239,7 @@ public class HttpClientConverter extends HttpConverter {
 
             // Add the cookies
             if (request.getCookies().size() > 0) {
-                final String cookies = CookieUtils.format(request.getCookies());
+                final String cookies = cookieUtils.format(request.getCookies());
                 requestHeaders.add(HttpConstants.HEADER_COOKIE, cookies);
             }
 

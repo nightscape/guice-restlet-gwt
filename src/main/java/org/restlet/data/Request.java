@@ -119,24 +119,7 @@ public class Request extends Message {
     /** The application root reference. */
     private Reference rootRef;
 
-    /**
-     * Constructor.
-     */
-    public Request() {
-        this.confidential = false;
-    }
 
-    /**
-     * Constructor.
-     * 
-     * @param method
-     *            The call's method.
-     * @param resourceRef
-     *            The resource reference.
-     */
-    public Request(Method method, Reference resourceRef) {
-        this(method, resourceRef, null);
-    }
 
     /**
      * Constructor.
@@ -148,39 +131,17 @@ public class Request extends Message {
      * @param entity
      *            The entity.
      */
-    public Request(Method method, Reference resourceRef, Representation entity) {
+    public Request(Method method, Reference resourceRef, Representation entity,ClientInfo clientInfo) {
         super(entity);
         setMethod(method);
         setResourceRef(resourceRef);
+        this.clientInfo = clientInfo;
     }
 
-    /**
-     * Constructor.
-     * 
-     * @param method
-     *            The call's method.
-     * @param resourceUri
-     *            The resource URI.
-     */
-    public Request(Method method, String resourceUri) {
-        this(method, new Reference(resourceUri));
-    }
+ 
 
-    /**
-     * Constructor.
-     * 
-     * @param method
-     *            The call's method.
-     * @param resourceUri
-     *            The resource URI.
-     * @param entity
-     *            The entity.
-     */
-    public Request(Method method, String resourceUri, Representation entity) {
-        this(method, new Reference(resourceUri), entity);
-    }
 
-    /**
+	/**
      * Returns the authentication response sent by a client to an origin server.
      * 
      * @return The authentication response sent by a client to an origin server.
@@ -196,17 +157,7 @@ public class Request extends Message {
      * @return The client-specific information.
      */
     public ClientInfo getClientInfo() {
-        // Lazy initialization with double-check.
-        ClientInfo c = this.clientInfo;
-        if (c == null) {
-            synchronized (this) {
-                c = this.clientInfo;
-                if (c == null) {
-                    this.clientInfo = c = new ClientInfo();
-                }
-            }
-        }
-        return c;
+        return this.clientInfo;
     }
 
     /**

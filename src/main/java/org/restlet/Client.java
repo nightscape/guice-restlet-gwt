@@ -30,18 +30,19 @@
 
 package org.restlet;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.restlet.data.Method;
 import org.restlet.data.Protocol;
 import org.restlet.data.Reference;
 import org.restlet.data.Request;
+import org.restlet.data.RequestFactory;
 import org.restlet.data.Response;
 import org.restlet.engine.Helper;
 import org.restlet.representation.Representation;
 import org.restlet.representation.StringRepresentation;
-import org.restlet.util.Engine;
+
+import com.google.inject.Inject;
 
 /**
  * Connector acting as a generic client. It internally uses one of the available
@@ -50,336 +51,271 @@ import org.restlet.util.Engine;
  * @author Jerome Louvel
  */
 public class Client extends Connector {
-    /**
-     * The number of milliseconds the client should wait for a response before
-     * aborting the request and setting its status to an error status.
-     */
-    private int connectTimeout = 0;
+	/**
+	 * The number of milliseconds the client should wait for a response before
+	 * aborting the request and setting its status to an error status.
+	 */
+	private int							connectTimeout	= 0;
 
-    /** The helper provided by the implementation. */
-    private Helper<Client> helper;
+	/** The helper provided by the implementation. */
+	private Helper<Context>	helper;
+	
+	private final RequestFactory requestFactory;
 
-    /**
-     * Constructor.
-     * 
-     * @param context
-     *            The context.
-     * @param protocols
-     *            The connector protocols.
-     */
-    public Client(Context context, List<Protocol> protocols) {
-        super(context, protocols);
+	/**
+	 * Constructor.
+	 * 
+	 * @param context
+	 *          The context.
+	 * @param protocols
+	 *          The connector protocols.
+	 */
+	@Inject
+	public Client(Context context, List<Protocol> protocols, Helper<Context> helper, RequestFactory requestFactory) {
+		super(context, protocols);
+		this.requestFactory = requestFactory;
+		if ((protocols != null) && (protocols.size() > 0)) {
+			this.helper = helper;
+		}
+	}
 
-        if ((protocols != null) && (protocols.size() > 0)) {
-            if (Engine.getInstance() != null) {
-                this.helper = Engine.getInstance().createHelper(this);
-            }
-        }
-    }
 
-    /**
-     * Constructor.
-     * 
-     * @param context
-     *            The context.
-     * @param protocol
-     *            The connector protocol.
-     */
-    public Client(Context context, Protocol protocol) {
-        this(context, (protocol == null) ? null : Arrays.asList(protocol));
-    }
 
-    /**
-     * Constructor.
-     * 
-     * @param protocols
-     *            The connector protocols.
-     */
-    public Client(List<Protocol> protocols) {
-        this(null, protocols);
-    }
+	/**
+	 * Deletes the identified resource.
+	 * 
+	 * @param resourceRef
+	 *          The reference of the resource to delete.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void delete(Reference resourceRef, Uniform callback) {
+		handle(requestFactory.createRequest(Method.DELETE, resourceRef), callback);
+	}
 
-    /**
-     * Constructor.
-     * 
-     * @param protocol
-     *            The connector protocol.
-     */
-    public Client(Protocol protocol) {
-        this(null, protocol);
-    }
+	/**
+	 * Deletes the identified resource.
+	 * 
+	 * @param resourceUri
+	 *          The URI of the resource to delete.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void delete(String resourceUri, Uniform callback) {
+		handle(requestFactory.createRequest(Method.DELETE, resourceUri), callback);
+	}
 
-    /**
-     * Constructor.
-     * 
-     * @param protocolName
-     *            The connector protocol.
-     */
-    public Client(String protocolName) {
-        this(Protocol.valueOf(protocolName));
-    }
+	/**
+	 * Gets the identified resource.
+	 * 
+	 * @param resourceRef
+	 *          The reference of the resource to get.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void get(Reference resourceRef, Uniform callback) {
+		handle(requestFactory.createRequest(Method.GET, resourceRef), callback);
+	}
 
-    /**
-     * Deletes the identified resource.
-     * 
-     * @param resourceRef
-     *            The reference of the resource to delete.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void delete(Reference resourceRef, Uniform callback) {
-        handle(new Request(Method.DELETE, resourceRef), callback);
-    }
+	/**
+	 * Gets the identified resource.
+	 * 
+	 * @param resourceUri
+	 *          The URI of the resource to get.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void get(String resourceUri, Uniform callback) {
+		handle(requestFactory.createRequest(Method.GET, resourceUri), callback);
+	}
 
-    /**
-     * Deletes the identified resource.
-     * 
-     * @param resourceUri
-     *            The URI of the resource to delete.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void delete(String resourceUri, Uniform callback) {
-        handle(new Request(Method.DELETE, resourceUri), callback);
-    }
+	/**
+	 * Returns the connection timeout.
+	 * 
+	 * @return The connection timeout.
+	 */
+	public int getConnectTimeout() {
+		return this.connectTimeout;
+	}
 
-    /**
-     * Gets the identified resource.
-     * 
-     * @param resourceRef
-     *            The reference of the resource to get.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void get(Reference resourceRef, Uniform callback) {
-        handle(new Request(Method.GET, resourceRef), callback);
-    }
+	/**
+	 * Returns the helper provided by the implementation.
+	 * 
+	 * @return The helper provided by the implementation.
+	 */
+	private Helper<Context> getHelper() {
+		return this.helper;
+	}
 
-    /**
-     * Gets the identified resource.
-     * 
-     * @param resourceUri
-     *            The URI of the resource to get.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void get(String resourceUri, Uniform callback) {
-        handle(new Request(Method.GET, resourceUri), callback);
-    }
+	/**
+	 * Handles a call.
+	 * 
+	 * @param request
+	 *          The request to handle.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void handle(Request request, Uniform callback) {
+		final Response response = new Response(request);
+		handle(request, response, callback);
+	}
 
-    /**
-     * Returns the connection timeout.
-     * 
-     * @return The connection timeout.
-     */
-    public int getConnectTimeout() {
-        return this.connectTimeout;
-    }
+	/**
+	 * Handles a call.
+	 * 
+	 * @param request
+	 *          The request to handle.
+	 * @param response
+	 *          The response to update.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public void handle(Request request, Response response, Uniform callback) {
+		super.handle(request, response, callback);
 
-    /**
-     * Returns the helper provided by the implementation.
-     * 
-     * @return The helper provided by the implementation.
-     */
-    private Helper<Client> getHelper() {
-        return this.helper;
-    }
+		if (getHelper() != null) {
+			getHelper().handle(request, response, callback);
+		}
+	}
 
-    /**
-     * Handles a call.
-     * 
-     * @param request
-     *            The request to handle.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void handle(Request request, Uniform callback) {
-        final Response response = new Response(request);
-        handle(request, response, callback);
-    }
+	/**
+	 * Gets the identified resource without its representation's content.
+	 * 
+	 * @param resourceRef
+	 *          The reference of the resource to get.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void head(Reference resourceRef, Uniform callback) {
+		handle(requestFactory.createRequest(Method.HEAD, resourceRef), callback);
+	}
 
-    /**
-     * Handles a call.
-     * 
-     * @param request
-     *            The request to handle.
-     * @param response
-     *            The response to update.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public void handle(Request request, Response response, Uniform callback) {
-        super.handle(request, response, callback);
+	/**
+	 * Gets the identified resource without its representation's content.
+	 * 
+	 * @param resourceUri
+	 *          The URI of the resource to get.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void head(String resourceUri, Uniform callback) {
+		handle(requestFactory.createRequest(Method.HEAD, resourceUri), callback);
+	}
 
-        if (getHelper() != null) {
-            getHelper().handle(request, response, callback);
-        }
-    }
+	/**
+	 * Gets the options for the identified resource.
+	 * 
+	 * @param resourceRef
+	 *          The reference of the resource to get.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void options(Reference resourceRef, Uniform callback) {
+		handle(requestFactory.createRequest(Method.OPTIONS, resourceRef), callback);
+	}
 
-    /**
-     * Gets the identified resource without its representation's content.
-     * 
-     * @param resourceRef
-     *            The reference of the resource to get.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void head(Reference resourceRef, Uniform callback) {
-        handle(new Request(Method.HEAD, resourceRef), callback);
-    }
+	/**
+	 * Gets the options for the identified resource.
+	 * 
+	 * @param resourceUri
+	 *          The URI of the resource to get.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void options(String resourceUri, Uniform callback) {
+		handle(requestFactory.createRequest(Method.OPTIONS, resourceUri), callback);
+	}
 
-    /**
-     * Gets the identified resource without its representation's content.
-     * 
-     * @param resourceUri
-     *            The URI of the resource to get.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void head(String resourceUri, Uniform callback) {
-        handle(new Request(Method.HEAD, resourceUri), callback);
-    }
 
-    /**
-     * Gets the options for the identified resource.
-     * 
-     * @param resourceRef
-     *            The reference of the resource to get.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void options(Reference resourceRef, Uniform callback) {
-        handle(new Request(Method.OPTIONS, resourceRef), callback);
-    }
 
-    /**
-     * Gets the options for the identified resource.
-     * 
-     * @param resourceUri
-     *            The URI of the resource to get.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void options(String resourceUri, Uniform callback) {
-        handle(new Request(Method.OPTIONS, resourceUri), callback);
-    }
+	/**
+	 * Posts a representation to the identified resource.
+	 * 
+	 * @param resourceUri
+	 *          The URI of the resource to post to.
+	 * @param entity
+	 *          The entity to post.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void post(String resourceUri, Representation entity,
+			Uniform callback) {
+		handle(requestFactory.createRequest(Method.POST, resourceUri, entity), callback);
+	}
 
-    /**
-     * Posts a representation to the identified resource.
-     * 
-     * @param resourceRef
-     *            The reference of the resource to post to.
-     * @param entity
-     *            The entity to post.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void post(Reference resourceRef, Representation entity,
-            Uniform callback) {
-        handle(new Request(Method.POST, resourceRef, entity), callback);
-    }
+	/**
+	 * Posts a representation to the identified resource.
+	 * 
+	 * @param resourceUri
+	 *          The URI of the resource to modify.
+	 * @param entity
+	 *          The entity to post.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void post(String resourceUri, String entity, Uniform callback) {
+		post(resourceUri, new StringRepresentation(entity), callback);
+	}
 
-    /**
-     * Posts a representation to the identified resource.
-     * 
-     * @param resourceUri
-     *            The URI of the resource to post to.
-     * @param entity
-     *            The entity to post.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void post(String resourceUri, Representation entity,
-            Uniform callback) {
-        handle(new Request(Method.POST, resourceUri, entity), callback);
-    }
 
-    /**
-     * Posts a representation to the identified resource.
-     * 
-     * @param resourceUri
-     *            The URI of the resource to modify.
-     * @param entity
-     *            The entity to post.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void post(String resourceUri, String entity, Uniform callback) {
-        post(resourceUri, new StringRepresentation(entity), callback);
-    }
 
-    /**
-     * Puts a representation in the identified resource.
-     * 
-     * @param resourceRef
-     *            The reference of the resource to modify.
-     * @param entity
-     *            The entity to put.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void put(Reference resourceRef, Representation entity,
-            Uniform callback) {
-        handle(new Request(Method.PUT, resourceRef, entity), callback);
-    }
+	/**
+	 * Puts a representation in the identified resource.
+	 * 
+	 * @param resourceUri
+	 *          The URI of the resource to modify.
+	 * @param entity
+	 *          The entity to put.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void put(String resourceUri, Representation entity,
+			Uniform callback) {
+		handle(requestFactory.createRequest(Method.PUT, resourceUri, entity), callback);
+	}
 
-    /**
-     * Puts a representation in the identified resource.
-     * 
-     * @param resourceUri
-     *            The URI of the resource to modify.
-     * @param entity
-     *            The entity to put.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void put(String resourceUri, Representation entity,
-            Uniform callback) {
-        handle(new Request(Method.PUT, resourceUri, entity), callback);
-    }
+	/**
+	 * Puts a representation in the identified resource.
+	 * 
+	 * @param resourceUri
+	 *          The URI of the resource to modify.
+	 * @param entity
+	 *          The entity to put.
+	 * @param callback
+	 *          The callback invoked upon request completion.
+	 */
+	public final void put(String resourceUri, String entity, Uniform callback) {
+		put(resourceUri, new StringRepresentation(entity), callback);
+	}
 
-    /**
-     * Puts a representation in the identified resource.
-     * 
-     * @param resourceUri
-     *            The URI of the resource to modify.
-     * @param entity
-     *            The entity to put.
-     * @param callback
-     *            The callback invoked upon request completion.
-     */
-    public final void put(String resourceUri, String entity, Uniform callback) {
-        put(resourceUri, new StringRepresentation(entity), callback);
-    }
+	/**
+	 * Sets the connection timeout.
+	 * 
+	 * @param connectTimeout
+	 *          The connection timeout.
+	 */
+	public void setConnectTimeout(int connectTimeout) {
+		this.connectTimeout = connectTimeout;
+	}
 
-    /**
-     * Sets the connection timeout.
-     * 
-     * @param connectTimeout
-     *            The connection timeout.
-     */
-    public void setConnectTimeout(int connectTimeout) {
-        this.connectTimeout = connectTimeout;
-    }
+	@Override
+	public synchronized void start() throws Exception {
+		if (isStopped()) {
+			super.start();
+			if (getHelper() != null) {
+				getHelper().start();
+			}
+		}
+	}
 
-    @Override
-    public synchronized void start() throws Exception {
-        if (isStopped()) {
-            super.start();
-            if (getHelper() != null) {
-                getHelper().start();
-            }
-        }
-    }
-
-    @Override
-    public synchronized void stop() throws Exception {
-        if (isStarted()) {
-            if (getHelper() != null) {
-                getHelper().stop();
-            }
-            super.stop();
-        }
-    }
+	@Override
+	public synchronized void stop() throws Exception {
+		if (isStarted()) {
+			if (getHelper() != null) {
+				getHelper().stop();
+			}
+			super.stop();
+		}
+	}
 
 }

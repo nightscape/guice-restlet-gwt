@@ -135,21 +135,21 @@ public abstract class Message {
         return this.entity;
     }
 
-    /**
-     * Returns the entity as a form.<br>
-     * This method can be called several times and will always return the same
-     * form instance. Note that if the entity is large this method can result in
-     * important memory consumption.
-     * 
-     * @return The entity as a form.
-     */
-    public Form getEntityAsForm() {
-        if (this.form == null) {
-            this.form = new Form(getEntity());
-        }
-
-        return this.form;
-    }
+//    /**
+//     * Returns the entity as a form.<br>
+//     * This method can be called several times and will always return the same
+//     * form instance. Note that if the entity is large this method can result in
+//     * important memory consumption.
+//     * 
+//     * @return The entity as a form.
+//     */
+//    public Form getEntityAsForm() {
+//        if (this.form == null) {
+//            this.form = new Form(getEntity());
+//        }
+//
+//        return this.form;
+//    }
 
     /**
      * Returns the entity as a JSON representation.<br>

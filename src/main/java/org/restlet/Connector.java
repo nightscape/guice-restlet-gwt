@@ -56,60 +56,56 @@ import org.restlet.data.Protocol;
  *      >Source dissertation</a>
  * @author Jerome Louvel
  */
-public abstract class Connector extends Restlet {
-    /** The list of protocols simultaneously supported. */
-    private final List<Protocol> protocols;
+public abstract class Connector extends RestletImpl {
+	/** The list of protocols simultaneously supported. */
+	private final List<Protocol>	protocols;
 
-    /**
-     * Constructor.
-     * 
-     * @param context
-     *            The context.
-     */
-    public Connector(Context context) {
-        this(context, null);
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param context
+	 *            The context.
+	 */
+	public Connector(Context context) {
+		this(context, new ArrayList<Protocol>());
+		System.err
+				.println("The connector has been instantiated without any protocol.");
+	}
 
-    /**
-     * Constructor.
-     * 
-     * @param context
-     *            The context.
-     * @param protocols
-     *            The supported protocols.
-     */
-    public Connector(Context context, List<Protocol> protocols) {
-        super(context);
-        if (protocols == null) {
-            this.protocols = new ArrayList<Protocol>();
-            System.err
-                    .println("The connector has been instantiated without any protocol.");
-        } else {
-            this.protocols = new ArrayList<Protocol>(protocols);
-        }
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param context
+	 *            The context.
+	 * @param protocols
+	 *            The supported protocols.
+	 */
+	public Connector(Context context, List<Protocol> protocols) {
+		super(context);
+		this.protocols = new ArrayList<Protocol>(protocols);
+	}
 
-    /**
-     * Returns the modifiable list of protocols simultaneously supported.
-     * 
-     * @return The protocols simultaneously supported.
-     */
-    public List<Protocol> getProtocols() {
-        return this.protocols;
-    }
+	/**
+	 * Returns the modifiable list of protocols simultaneously supported.
+	 * 
+	 * @return The protocols simultaneously supported.
+	 */
+	public List<Protocol> getProtocols() {
+		return this.protocols;
+	}
 
-    /**
-     * Sets the protocols simultaneously supported. Method synchronized to make
-     * compound action (clear, addAll) atomic, not for visibility.
-     * 
-     * @param protocols
-     *            The protocols simultaneously supported.
-     */
-    public synchronized void setProtocols(List<Protocol> protocols) {
-        this.protocols.clear();
-        if (protocols != null) {
-            this.protocols.addAll(protocols);
-        }
-    }
+	/**
+	 * Sets the protocols simultaneously supported. Method synchronized to make
+	 * compound action (clear, addAll) atomic, not for visibility.
+	 * 
+	 * @param protocols
+	 *            The protocols simultaneously supported.
+	 */
+	public synchronized void setProtocols(List<Protocol> protocols) {
+		this.protocols.clear();
+		if (protocols != null) {
+			this.protocols.addAll(protocols);
+		}
+	}
 
 }

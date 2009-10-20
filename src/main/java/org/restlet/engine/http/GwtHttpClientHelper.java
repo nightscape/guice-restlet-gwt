@@ -31,8 +31,12 @@
 package org.restlet.engine.http;
 
 import org.restlet.Client;
+import org.restlet.Context;
+import org.restlet.configuration.TimeOut;
 import org.restlet.data.Protocol;
 import org.restlet.data.Request;
+
+import com.google.inject.Inject;
 
 /**
  * HTTP client connector using the GWT's HTTP module. Here is the list of
@@ -62,8 +66,9 @@ public class GwtHttpClientHelper extends HttpClientHelper {
      * @param client
      *            The client to help.
      */
-    public GwtHttpClientHelper(Client client) {
-        super(client);
+	@Inject
+    public GwtHttpClientHelper(Context client,@TimeOut int timeOut,HttpClientConverterFactory httpClientConverterFactory) {
+        super(client,timeOut,httpClientConverterFactory);
         getProtocols().add(Protocol.HTTP);
         getProtocols().add(Protocol.HTTPS);
     }

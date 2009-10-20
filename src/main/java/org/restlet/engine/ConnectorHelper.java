@@ -42,7 +42,7 @@ import org.restlet.data.Protocol;
  * 
  * @author Jerome Louvel
  */
-public abstract class ConnectorHelper<T extends Connector> extends Helper<T> {
+public abstract class ConnectorHelper<T extends Context> extends AbstractHelper<T> {
     /** The protocols simultaneously supported. */
     private List<Protocol> protocols;
 

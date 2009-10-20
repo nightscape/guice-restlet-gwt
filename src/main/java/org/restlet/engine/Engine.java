@@ -35,30 +35,29 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.restlet.Client;
 import org.restlet.data.CharacterSet;
 import org.restlet.data.ClientInfo;
 import org.restlet.data.Cookie;
-import org.restlet.data.Dimension;
 import org.restlet.data.CookieSetting;
+import org.restlet.data.Dimension;
 import org.restlet.data.Form;
 import org.restlet.data.Language;
 import org.restlet.data.MediaType;
 import org.restlet.data.Parameter;
 import org.restlet.data.Preference;
 import org.restlet.data.Product;
-import org.restlet.data.Protocol;
 import org.restlet.data.Response;
 import org.restlet.engine.http.ContentType;
 import org.restlet.engine.http.CookieReader;
 import org.restlet.engine.http.CookieUtils;
-import org.restlet.engine.http.GwtHttpClientHelper;
 import org.restlet.engine.http.HttpClientConverter;
 import org.restlet.engine.http.HttpUtils;
 import org.restlet.engine.http.Util;
 import org.restlet.engine.util.FormUtils;
 import org.restlet.representation.Representation;
 import org.restlet.representation.Variant;
+
+import com.google.inject.Inject;
 
 /**
  * Restlet factory supported by the engine.
@@ -79,13 +78,9 @@ public class Engine extends org.restlet.util.Engine {
 
 	/** List of available client connectors. */
 	private List<ClientHelper> registeredClients;
+	private CookieUtils	cookieUtils;
 
-	/**
-	 * Constructor that will automatically attempt to discover connectors.
-	 */
-	public Engine(Util util) {
-		this(true,util);
-	}
+
 
 	/**
 	 * Constructor.
@@ -93,12 +88,9 @@ public class Engine extends org.restlet.util.Engine {
 	 * @param discoverHelpers
 	 *            True if helpers should be automatically discovered.
 	 */
-	public Engine(boolean discoverHelpers, Util util) {
-		this.registeredClients = new ArrayList<ClientHelper>();
-
-		if (discoverHelpers) {
-			getRegisteredClients().add(new GwtHttpClientHelper(null));
-		}
+	@Inject
+	public Engine(Util util,List<ClientHelper> clientHelpers) {
+		this.registeredClients = clientHelpers;
 		this.util = util;
 	}
 
@@ -122,52 +114,52 @@ public class Engine extends org.restlet.util.Engine {
 				.getEntity());
 	}
 
-	@Override
-	public ClientHelper createHelper(Client client) {
-		ClientHelper result = null;
-
-		if (client.getProtocols().size() > 0) {
-			ClientHelper connector = null;
-			for (final Iterator<ClientHelper> iter = getRegisteredClients()
-					.iterator(); (result == null) && iter.hasNext();) {
-				connector = iter.next();
-
-				if (connector.getProtocols().containsAll(client.getProtocols())) {
-					// Not very dynamic but works as we only have one helper
-					// available currently
-					result = new GwtHttpClientHelper(client);
-				}
-			}
-
-			if (result == null) {
-				// Couldn't find a matching connector
-				final StringBuilder sb = new StringBuilder();
-				sb
-						.append("No available client connector supports the required protocols: ");
-
-				for (final Protocol p : client.getProtocols()) {
-					sb.append("'").append(p.getName()).append("' ");
-				}
-
-				sb
-						.append(". Please add the JAR of a matching connector to your classpath.");
-
-				System.err.println(sb.toString());
-			}
-		}
-
-		return result;
-	}
+//	@Override
+//	public ClientHelper createHelper(Client client) {
+//		ClientHelper result = null;
+//
+//		if (client.getProtocols().size() > 0) {
+//			ClientHelper connector = null;
+//			for (final Iterator<ClientHelper> iter = getRegisteredClients()
+//					.iterator(); (result == null) && iter.hasNext();) {
+//				connector = iter.next();
+//
+//				if (connector.getProtocols().containsAll(client.getProtocols())) {
+//					// Not very dynamic but works as we only have one helper
+//					// available currently
+//					result = new GwtHttpClientHelper(client, httpClientConverterFactory);
+//				}
+//			}
+//
+//			if (result == null) {
+//				// Couldn't find a matching connector
+//				final StringBuilder sb = new StringBuilder();
+//				sb
+//						.append("No available client connector supports the required protocols: ");
+//
+//				for (final Protocol p : client.getProtocols()) {
+//					sb.append("'").append(p.getName()).append("' ");
+//				}
+//
+//				sb
+//						.append(". Please add the JAR of a matching connector to your classpath.");
+//
+//				System.err.println(sb.toString());
+//			}
+//		}
+//
+//		return result;
+//	}
 
 	@Override
 	public String formatCookie(Cookie cookie) throws IllegalArgumentException {
-		return CookieUtils.format(cookie);
+		return cookieUtils.format(cookie);
 	}
 
 	@Override
 	public String formatCookieSetting(CookieSetting cookieSetting)
 			throws IllegalArgumentException {
-		return CookieUtils.format(cookieSetting);
+		return cookieUtils.format(cookieSetting);
 	}
 
 	@Override

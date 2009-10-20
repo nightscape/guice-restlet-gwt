@@ -84,7 +84,7 @@ public class GwtHttpClientCall extends HttpClientCall {
      */
     public GwtHttpClientCall(GwtHttpClientHelper helper, String method,
             String requestUri, boolean hasEntity) {
-        super(helper, method, requestUri, new UtilImpl());
+        super(helper, method, requestUri, new UtilImpl(new DateHelperImpl()));
 
         Reference requestRef = new Reference(requestUri);
         if (requestRef.isRelative()

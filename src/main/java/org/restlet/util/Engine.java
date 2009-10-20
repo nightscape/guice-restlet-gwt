@@ -33,7 +33,6 @@ package org.restlet.util;
 import java.util.Collection;
 import java.util.List;
 
-import org.restlet.Client;
 import org.restlet.data.CharacterSet;
 import org.restlet.data.ClientInfo;
 import org.restlet.data.Cookie;
@@ -45,7 +44,6 @@ import org.restlet.data.MediaType;
 import org.restlet.data.Parameter;
 import org.restlet.data.Product;
 import org.restlet.data.Response;
-import org.restlet.engine.Helper;
 import org.restlet.representation.Representation;
 import org.restlet.representation.Variant;
 
@@ -56,9 +54,6 @@ import org.restlet.representation.Variant;
  * @author Jerome Louvel
  */
 public abstract class Engine {
-
-    /** The registered engine. */
-    private static Engine instance = null;
 
     /** Major version number. */
     public static final String MAJOR_NUMBER = "2";
@@ -96,15 +91,6 @@ public abstract class Engine {
         return result;
     }
 
-    /**
-     * Sets the registered Restlet engine.
-     * 
-     * @param engine
-     *            The registered Restlet engine.
-     */
-    public static void setInstance(Engine engine) {
-        instance = engine;
-    }
 
     /**
      * Copies the given header parameters into the given {@link Response}.
@@ -118,14 +104,7 @@ public abstract class Engine {
     public abstract void copyResponseHeaders(Iterable<Parameter> headers,
             Response response);
 
-    /**
-     * Creates a new helper for a given client connector.
-     * 
-     * @param client
-     *            The client to help.
-     * @return The new helper.
-     */
-    public abstract Helper<Client> createHelper(Client client);
+
 
     /**
      * Formats the given Cookie to a String

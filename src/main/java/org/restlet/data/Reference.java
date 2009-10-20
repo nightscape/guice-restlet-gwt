@@ -1132,25 +1132,25 @@ public class Reference {
         return decode ? decode(getMatrix()) : getMatrix();
     }
 
-    /**
-     * Returns the optional matrix as a form.
-     * 
-     * @return The optional matrix component as a form.
-     */
-    public Form getMatrixAsForm() {
-        return new Form(getMatrix(), ';');
-    }
-
-    /**
-     * Returns the optional matrix as a form submission.
-     * 
-     * @param characterSet
-     *            The supported character encoding.
-     * @return The optional matrix as a form.
-     */
-    public Form getMatrixAsForm(CharacterSet characterSet) {
-        return new Form(getMatrix(), characterSet, ';');
-    }
+//    /**
+//     * Returns the optional matrix as a form.
+//     * 
+//     * @return The optional matrix component as a form.
+//     */
+//    public Form getMatrixAsForm() {
+//        return new Form(getMatrix(), ';');
+//    }
+//
+//    /**
+//     * Returns the optional matrix as a form submission.
+//     * 
+//     * @param characterSet
+//     *            The supported character encoding.
+//     * @return The optional matrix as a form.
+//     */
+//    public Form getMatrixAsForm(CharacterSet characterSet) {
+//        return new Form(getMatrix(), characterSet, ';');
+//    }
 
     /**
      * Returns the parent reference of a hierarchical reference. The last slash
@@ -1279,25 +1279,25 @@ public class Reference {
         return decode ? decode(getQuery()) : getQuery();
     }
 
-    /**
-     * Returns the optional query component as a form.
-     * 
-     * @return The optional query component as a form.
-     */
-    public Form getQueryAsForm() {
-        return new Form(getQuery());
-    }
-
-    /**
-     * Returns the optional query component as a form submission.
-     * 
-     * @param characterSet
-     *            The supported character encoding.
-     * @return The optional query component as a form submission.
-     */
-    public Form getQueryAsForm(CharacterSet characterSet) {
-        return new Form(getQuery(), characterSet);
-    }
+//    /**
+//     * Returns the optional query component as a form.
+//     * 
+//     * @return The optional query component as a form.
+//     */
+//    public Form getQueryAsForm() {
+//        return new Form(getQuery());
+//    }
+//
+//    /**
+//     * Returns the optional query component as a form submission.
+//     * 
+//     * @param characterSet
+//     *            The supported character encoding.
+//     * @return The optional query component as a form submission.
+//     */
+//    public Form getQueryAsForm(CharacterSet characterSet) {
+//        return new Form(getQuery(), characterSet);
+//    }
 
     /**
      * Returns the relative part of relative references, without the query and

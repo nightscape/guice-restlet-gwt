@@ -10,7 +10,16 @@ import org.restlet.data.Parameter;
 import org.restlet.data.Tag;
 import org.restlet.representation.Representation;
 
+import com.google.inject.Inject;
+
 public class UtilImpl implements Util {
+	@Inject
+	public UtilImpl(DateHelper dateHelper) {
+		super();
+		this.dateHelper = dateHelper;
+	}
+
+	private final DateHelper dateHelper;
   /* (non-Javadoc)
 	 * @see org.restlet.engine.http.Util#copyResponseEntityHeaders(java.lang.Iterable, org.restlet.representation.Representation)
 	 */
@@ -37,7 +46,7 @@ public class UtilImpl implements Util {
               entityHeaderFound = true;
           } else if (header.getName().equalsIgnoreCase(
                   HttpConstants.HEADER_EXPIRES)) {
-              result.setExpirationDate(HttpClientCall.parseDate(header.getValue(), false));
+              result.setExpirationDate(dateHelper.parseDate(header.getValue(), false));
               entityHeaderFound = true;
           } else if (header.getName().equalsIgnoreCase(
                   HttpConstants.HEADER_CONTENT_ENCODING)) {
@@ -62,7 +71,7 @@ public class UtilImpl implements Util {
               entityHeaderFound = true;
           } else if (header.getName().equalsIgnoreCase(
                   HttpConstants.HEADER_LAST_MODIFIED)) {
-              result.setModificationDate(HttpClientCall.parseDate(header.getValue(), false));
+              result.setModificationDate(dateHelper.parseDate(header.getValue(), false));
               entityHeaderFound = true;
           } else if (header.getName().equalsIgnoreCase(
                   HttpConstants.HEADER_ETAG)) {

@@ -31,12 +31,10 @@
 package org.restlet.engine.http;
 
 import java.io.IOException;
-import java.util.Date;
 
 import org.restlet.data.Form;
 import org.restlet.data.Parameter;
 import org.restlet.data.Protocol;
-import org.restlet.engine.util.DateUtils;
 import org.restlet.representation.Representation;
 import org.restlet.util.Series;
 
@@ -46,454 +44,419 @@ import org.restlet.util.Series;
  * @author Jerome Louvel
  */
 public abstract class HttpCall {
+	/** The client IP address. */
+	private String					clientAddress;
 
-    /**
-     * Formats a date as a header string.
-     * 
-     * @param date
-     *            The date to format.
-     * @param cookie
-     *            Indicates if the date should be in the cookie format.
-     * @return The formatted date.
-     */
-    public static String formatDate(Date date, boolean cookie) {
-        if (cookie) {
-            return DateUtils.format(date, DateUtils.FORMAT_RFC_1036.get(0));
-        } else {
-            return DateUtils.format(date, DateUtils.FORMAT_RFC_1123.get(0));
-        }
-    }
+	/** The client port. */
+	private int						clientPort;
 
-    /**
-     * Parses a date string.
-     * 
-     * @param date
-     *            The date string to parse.
-     * @param cookie
-     *            Indicates if the date is in the cookie format.
-     * @return The parsed date.
-     */
-    public static Date parseDate(String date, boolean cookie) {
-        if (cookie) {
-            return DateUtils.parse(date, DateUtils.FORMAT_RFC_1036);
-        } else {
-            return DateUtils.parse(date, DateUtils.FORMAT_RFC_1123);
-        }
-    }
+	/** Indicates if the call is confidential. */
+	private boolean					confidential;
 
-    /** The client IP address. */
-    private String clientAddress;
+	/** The hostRef domain. */
+	private String					hostDomain;
 
-    /** The client port. */
-    private int clientPort;
+	/** The hostRef port. */
+	private int						hostPort;
 
-    /** Indicates if the call is confidential. */
-    private boolean confidential;
+	/** The method. */
+	private String					method;
 
-    /** The hostRef domain. */
-    private String hostDomain;
+	/** The exact protocol. */
+	private Protocol				protocol;
 
-    /** The hostRef port. */
-    private int hostPort;
+	/** The reason phrase. */
+	private String					reasonPhrase;
 
-    /** The method. */
-    private String method;
+	/** The request headers. */
+	private final Series<Parameter>	requestHeaders;
 
-    /** The exact protocol. */
-    private Protocol protocol;
+	/** The request URI. */
+	private String					requestUri;
 
-    /** The reason phrase. */
-    private String reasonPhrase;
+	/** The response headers. */
+	private final Series<Parameter>	responseHeaders;
 
-    /** The request headers. */
-    private final Series<Parameter> requestHeaders;
+	/** The server IP address. */
+	private String					serverAddress;
 
-    /** The request URI. */
-    private String requestUri;
+	/** The server port. */
+	private int						serverPort;
 
-    /** The response headers. */
-    private final Series<Parameter> responseHeaders;
+	/** The status code. */
+	private int						statusCode;
 
-    /** The server IP address. */
-    private String serverAddress;
+	/** The protocol version. */
+	private String					version;
 
-    /** The server port. */
-    private int serverPort;
+	/**
+	 * Constructor.
+	 */
+	public HttpCall() {
+		this.hostDomain = null;
+		this.hostPort = -1;
+		this.clientAddress = null;
+		this.clientPort = -1;
+		this.confidential = false;
+		this.method = null;
+		this.protocol = null;
+		this.reasonPhrase = "";
+		this.requestHeaders = new Form();
+		this.requestUri = null;
+		this.responseHeaders = new Form();
+		this.serverAddress = null;
+		this.serverPort = -1;
+		this.statusCode = 200;
+		this.version = null;
+	}
 
-    /** The status code. */
-    private int statusCode;
+	/**
+	 * Returns the client address.<br>
+	 * Corresponds to the IP address of the requesting client.
+	 * 
+	 * @return The client address.
+	 */
+	public String getClientAddress() {
+		return this.clientAddress;
+	}
 
-    /** The protocol version. */
-    private String version;
+	/**
+	 * Returns the client port.<br>
+	 * Corresponds to the TCP/IP port of the requesting client.
+	 * 
+	 * @return The client port.
+	 */
+	public int getClientPort() {
+		return this.clientPort;
+	}
 
-    /**
-     * Constructor.
-     */
-    public HttpCall() {
-        this.hostDomain = null;
-        this.hostPort = -1;
-        this.clientAddress = null;
-        this.clientPort = -1;
-        this.confidential = false;
-        this.method = null;
-        this.protocol = null;
-        this.reasonPhrase = "";
-        this.requestHeaders = new Form();
-        this.requestUri = null;
-        this.responseHeaders = new Form();
-        this.serverAddress = null;
-        this.serverPort = -1;
-        this.statusCode = 200;
-        this.version = null;
-    }
+	/**
+	 * Returns the content length of the request entity if know,
+	 * {@link Representation#UNKNOWN_SIZE} otherwise.
+	 * 
+	 * @return The request content length.
+	 */
+	protected long getContentLength(Series<Parameter> headers) {
+		long contentLength = Representation.UNKNOWN_SIZE;
 
-    /**
-     * Returns the client address.<br>
-     * Corresponds to the IP address of the requesting client.
-     * 
-     * @return The client address.
-     */
-    public String getClientAddress() {
-        return this.clientAddress;
-    }
+		// Extract the content length header
+		for (final Parameter header : headers) {
+			if (header.getName().equalsIgnoreCase(
+					HttpConstants.HEADER_CONTENT_LENGTH)) {
+				try {
+					contentLength = Long.parseLong(header.getValue());
+				} catch (NumberFormatException e) {
+					contentLength = Representation.UNKNOWN_SIZE;
+				}
+			}
+		}
 
-    /**
-     * Returns the client port.<br>
-     * Corresponds to the TCP/IP port of the requesting client.
-     * 
-     * @return The client port.
-     */
-    public int getClientPort() {
-        return this.clientPort;
-    }
+		return contentLength;
+	}
 
-    /**
-     * Returns the content length of the request entity if know,
-     * {@link Representation#UNKNOWN_SIZE} otherwise.
-     * 
-     * @return The request content length.
-     */
-    protected long getContentLength(Series<Parameter> headers) {
-        long contentLength = Representation.UNKNOWN_SIZE;
+	/**
+	 * Returns the host domain.
+	 * 
+	 * @return The host domain.
+	 */
+	public String getHostDomain() {
+		return this.hostDomain;
+	}
 
-        // Extract the content length header
-        for (final Parameter header : headers) {
-            if (header.getName().equalsIgnoreCase(
-                    HttpConstants.HEADER_CONTENT_LENGTH)) {
-                try {
-                    contentLength = Long.parseLong(header.getValue());
-                } catch (NumberFormatException e) {
-                    contentLength = Representation.UNKNOWN_SIZE;
-                }
-            }
-        }
+	/**
+	 * Returns the host port.
+	 * 
+	 * @return The host port.
+	 */
+	public int getHostPort() {
+		return this.hostPort;
+	}
 
-        return contentLength;
-    }
+	/**
+	 * Returns the request method.
+	 * 
+	 * @return The request method.
+	 */
+	public String getMethod() {
+		return this.method;
+	}
 
-    /**
-     * Returns the host domain.
-     * 
-     * @return The host domain.
-     */
-    public String getHostDomain() {
-        return this.hostDomain;
-    }
+	/**
+	 * Returns the exact protocol (HTTP or HTTPS).
+	 * 
+	 * @return The exact protocol (HTTP or HTTPS).
+	 */
+	public Protocol getProtocol() {
+		if (this.protocol == null) {
+			this.protocol = isConfidential() ? Protocol.HTTPS : Protocol.HTTP;
+		}
+		return this.protocol;
+	}
 
-    /**
-     * Returns the host port.
-     * 
-     * @return The host port.
-     */
-    public int getHostPort() {
-        return this.hostPort;
-    }
+	/**
+	 * Returns the reason phrase.
+	 * 
+	 * @return The reason phrase.
+	 */
+	public String getReasonPhrase() {
+		return this.reasonPhrase;
+	}
 
-    /**
-     * Returns the request method.
-     * 
-     * @return The request method.
-     */
-    public String getMethod() {
-        return this.method;
-    }
+	/**
+	 * Returns the modifiable list of request headers.
+	 * 
+	 * @return The modifiable list of request headers.
+	 */
+	public Series<Parameter> getRequestHeaders() {
+		return this.requestHeaders;
+	}
 
-    /**
-     * Returns the exact protocol (HTTP or HTTPS).
-     * 
-     * @return The exact protocol (HTTP or HTTPS).
-     */
-    public Protocol getProtocol() {
-        if (this.protocol == null) {
-            this.protocol = isConfidential() ? Protocol.HTTPS : Protocol.HTTP;
-        }
-        return this.protocol;
-    }
+	/**
+	 * Returns the URI on the request line (most like a relative reference, but
+	 * not necessarily).
+	 * 
+	 * @return The URI on the request line.
+	 */
+	public String getRequestUri() {
+		return this.requestUri;
+	}
 
-    /**
-     * Returns the reason phrase.
-     * 
-     * @return The reason phrase.
-     */
-    public String getReasonPhrase() {
-        return this.reasonPhrase;
-    }
+	/**
+	 * Returns the modifiable list of server headers.
+	 * 
+	 * @return The modifiable list of server headers.
+	 */
+	public Series<Parameter> getResponseHeaders() {
+		return this.responseHeaders;
+	}
 
-    /**
-     * Returns the modifiable list of request headers.
-     * 
-     * @return The modifiable list of request headers.
-     */
-    public Series<Parameter> getRequestHeaders() {
-        return this.requestHeaders;
-    }
+	/**
+	 * Returns the response address.<br>
+	 * Corresponds to the IP address of the responding server.
+	 * 
+	 * @return The response address.
+	 */
+	public String getServerAddress() {
+		return this.serverAddress;
+	}
 
-    /**
-     * Returns the URI on the request line (most like a relative reference, but
-     * not necessarily).
-     * 
-     * @return The URI on the request line.
-     */
-    public String getRequestUri() {
-        return this.requestUri;
-    }
+	/**
+	 * Returns the server port.
+	 * 
+	 * @return The server port.
+	 */
+	public int getServerPort() {
+		return this.serverPort;
+	}
 
-    /**
-     * Returns the modifiable list of server headers.
-     * 
-     * @return The modifiable list of server headers.
-     */
-    public Series<Parameter> getResponseHeaders() {
-        return this.responseHeaders;
-    }
+	/**
+	 * Returns the status code.
+	 * 
+	 * @return The status code.
+	 * @throws IOException
+	 */
+	public int getStatusCode() {
+		return this.statusCode;
+	}
 
-    /**
-     * Returns the response address.<br>
-     * Corresponds to the IP address of the responding server.
-     * 
-     * @return The response address.
-     */
-    public String getServerAddress() {
-        return this.serverAddress;
-    }
+	/**
+	 * Returns the protocol version used.
+	 * 
+	 * @return The protocol version used.
+	 */
+	public String getVersion() {
+		return this.version;
+	}
 
-    /**
-     * Returns the server port.
-     * 
-     * @return The server port.
-     */
-    public int getServerPort() {
-        return this.serverPort;
-    }
+	/**
+	 * Indicates if the client wants a persistent connection.
+	 * 
+	 * @return True if the client wants a persistent connection.
+	 */
+	protected abstract boolean isClientKeepAlive();
 
-    /**
-     * Returns the status code.
-     * 
-     * @return The status code.
-     * @throws IOException
-     */
-    public int getStatusCode() {
-        return this.statusCode;
-    }
+	/**
+	 * Indicates if the confidentiality of the call is ensured (ex: via SSL).
+	 * 
+	 * @return True if the confidentiality of the call is ensured (ex: via SSL).
+	 */
+	public boolean isConfidential() {
+		return this.confidential;
+	}
 
-    /**
-     * Returns the protocol version used.
-     * 
-     * @return The protocol version used.
-     */
-    public String getVersion() {
-        return this.version;
-    }
+	/**
+	 * Indicates if both the client and the server want a persistent connection.
+	 * 
+	 * @return True if the connection should be kept alive after the call
+	 *         processing.
+	 */
+	protected boolean isKeepAlive() {
+		return isClientKeepAlive() && isServerKeepAlive();
+	}
 
-    /**
-     * Indicates if the client wants a persistent connection.
-     * 
-     * @return True if the client wants a persistent connection.
-     */
-    protected abstract boolean isClientKeepAlive();
+	/**
+	 * Indicates if the request entity is chunked.
+	 * 
+	 * @return True if the request entity is chunked.
+	 */
+	protected boolean isRequestChunked() {
+		final String header = getRequestHeaders().getFirstValue(
+				HttpConstants.HEADER_TRANSFER_ENCODING, true);
+		return (header != null) && header.equalsIgnoreCase("chunked");
+	}
 
-    /**
-     * Indicates if the confidentiality of the call is ensured (ex: via SSL).
-     * 
-     * @return True if the confidentiality of the call is ensured (ex: via SSL).
-     */
-    public boolean isConfidential() {
-        return this.confidential;
-    }
+	/**
+	 * Indicates if the response entity is chunked.
+	 * 
+	 * @return True if the response entity is chunked.
+	 */
+	protected boolean isResponseChunked() {
+		final String header = getResponseHeaders().getFirstValue(
+				HttpConstants.HEADER_TRANSFER_ENCODING, true);
+		return (header != null) && header.equalsIgnoreCase("chunked");
+	}
 
-    /**
-     * Indicates if both the client and the server want a persistent connection.
-     * 
-     * @return True if the connection should be kept alive after the call
-     *         processing.
-     */
-    protected boolean isKeepAlive() {
-        return isClientKeepAlive() && isServerKeepAlive();
-    }
+	/**
+	 * Indicates if the server wants a persistent connection.
+	 * 
+	 * @return True if the server wants a persistent connection.
+	 */
+	protected abstract boolean isServerKeepAlive();
 
-    /**
-     * Indicates if the request entity is chunked.
-     * 
-     * @return True if the request entity is chunked.
-     */
-    protected boolean isRequestChunked() {
-        final String header = getRequestHeaders().getFirstValue(
-                HttpConstants.HEADER_TRANSFER_ENCODING, true);
-        return (header != null) && header.equalsIgnoreCase("chunked");
-    }
+	/**
+	 * Sets the client address.
+	 * 
+	 * @param clientAddress
+	 *            The client address.
+	 */
+	protected void setClientAddress(String clientAddress) {
+		this.clientAddress = clientAddress;
+	}
 
-    /**
-     * Indicates if the response entity is chunked.
-     * 
-     * @return True if the response entity is chunked.
-     */
-    protected boolean isResponseChunked() {
-        final String header = getResponseHeaders().getFirstValue(
-                HttpConstants.HEADER_TRANSFER_ENCODING, true);
-        return (header != null) && header.equalsIgnoreCase("chunked");
-    }
+	/**
+	 * Sets the client port.
+	 * 
+	 * @param clientPort
+	 *            The client port.
+	 */
+	protected void setClientPort(int clientPort) {
+		this.clientPort = clientPort;
+	}
 
-    /**
-     * Indicates if the server wants a persistent connection.
-     * 
-     * @return True if the server wants a persistent connection.
-     */
-    protected abstract boolean isServerKeepAlive();
+	/**
+	 * Indicates if the confidentiality of the call is ensured (ex: via SSL).
+	 * 
+	 * @param confidential
+	 *            True if the confidentiality of the call is ensured (ex: via
+	 *            SSL).
+	 */
+	protected void setConfidential(boolean confidential) {
+		this.confidential = confidential;
+	}
 
-    /**
-     * Sets the client address.
-     * 
-     * @param clientAddress
-     *            The client address.
-     */
-    protected void setClientAddress(String clientAddress) {
-        this.clientAddress = clientAddress;
-    }
+	/**
+	 * Sets the host domain name.
+	 * 
+	 * @param hostDomain
+	 *            The baseRef domain name.
+	 */
+	public void setHostDomain(String hostDomain) {
+		this.hostDomain = hostDomain;
+	}
 
-    /**
-     * Sets the client port.
-     * 
-     * @param clientPort
-     *            The client port.
-     */
-    protected void setClientPort(int clientPort) {
-        this.clientPort = clientPort;
-    }
+	/**
+	 * Sets the host port.
+	 * 
+	 * @param hostPort
+	 *            The host port.
+	 */
+	public void setHostPort(int hostPort) {
+		this.hostPort = hostPort;
+	}
 
-    /**
-     * Indicates if the confidentiality of the call is ensured (ex: via SSL).
-     * 
-     * @param confidential
-     *            True if the confidentiality of the call is ensured (ex: via
-     *            SSL).
-     */
-    protected void setConfidential(boolean confidential) {
-        this.confidential = confidential;
-    }
+	/**
+	 * Sets the request method.
+	 * 
+	 * @param method
+	 *            The request method.
+	 */
+	protected void setMethod(String method) {
+		this.method = method;
+	}
 
-    /**
-     * Sets the host domain name.
-     * 
-     * @param hostDomain
-     *            The baseRef domain name.
-     */
-    public void setHostDomain(String hostDomain) {
-        this.hostDomain = hostDomain;
-    }
+	/**
+	 * Sets the exact protocol used (HTTP or HTTPS).
+	 * 
+	 * @param protocol
+	 *            The protocol.
+	 */
+	public void setProtocol(Protocol protocol) {
+		this.protocol = protocol;
+	}
 
-    /**
-     * Sets the host port.
-     * 
-     * @param hostPort
-     *            The host port.
-     */
-    public void setHostPort(int hostPort) {
-        this.hostPort = hostPort;
-    }
+	/**
+	 * Sets the reason phrase.
+	 * 
+	 * @param reasonPhrase
+	 *            The reason phrase.
+	 */
+	public void setReasonPhrase(String reasonPhrase) {
+		this.reasonPhrase = reasonPhrase;
+	}
 
-    /**
-     * Sets the request method.
-     * 
-     * @param method
-     *            The request method.
-     */
-    protected void setMethod(String method) {
-        this.method = method;
-    }
+	/**
+	 * Sets the full request URI.
+	 * 
+	 * @param requestUri
+	 *            The full request URI.
+	 */
+	protected void setRequestUri(String requestUri) {
+		if ((requestUri == null) || (requestUri.equals(""))) {
+			requestUri = "/";
+		}
 
-    /**
-     * Sets the exact protocol used (HTTP or HTTPS).
-     * 
-     * @param protocol
-     *            The protocol.
-     */
-    public void setProtocol(Protocol protocol) {
-        this.protocol = protocol;
-    }
+		this.requestUri = requestUri;
+	}
 
-    /**
-     * Sets the reason phrase.
-     * 
-     * @param reasonPhrase
-     *            The reason phrase.
-     */
-    public void setReasonPhrase(String reasonPhrase) {
-        this.reasonPhrase = reasonPhrase;
-    }
+	/**
+	 * Sets the response address.<br>
+	 * Corresponds to the IP address of the responding server.
+	 * 
+	 * @param responseAddress
+	 *            The response address.
+	 */
+	public void setServerAddress(String responseAddress) {
+		this.serverAddress = responseAddress;
+	}
 
-    /**
-     * Sets the full request URI.
-     * 
-     * @param requestUri
-     *            The full request URI.
-     */
-    protected void setRequestUri(String requestUri) {
-        if ((requestUri == null) || (requestUri.equals(""))) {
-            requestUri = "/";
-        }
+	/**
+	 * Sets the server port.
+	 * 
+	 * @param serverPort
+	 *            The server port.
+	 */
+	public void setServerPort(int serverPort) {
+		this.serverPort = serverPort;
+	}
 
-        this.requestUri = requestUri;
-    }
+	/**
+	 * Sets the status code.
+	 * 
+	 * @param code
+	 *            The status code.
+	 */
+	public void setStatusCode(int code) {
+		this.statusCode = code;
+	}
 
-    /**
-     * Sets the response address.<br>
-     * Corresponds to the IP address of the responding server.
-     * 
-     * @param responseAddress
-     *            The response address.
-     */
-    public void setServerAddress(String responseAddress) {
-        this.serverAddress = responseAddress;
-    }
-
-    /**
-     * Sets the server port.
-     * 
-     * @param serverPort
-     *            The server port.
-     */
-    public void setServerPort(int serverPort) {
-        this.serverPort = serverPort;
-    }
-
-    /**
-     * Sets the status code.
-     * 
-     * @param code
-     *            The status code.
-     */
-    public void setStatusCode(int code) {
-        this.statusCode = code;
-    }
-
-    /**
-     * Sets the protocol version used.
-     * 
-     * @param version
-     *            The protocol version used.
-     */
-    public void setVersion(String version) {
-        this.version = version;
-    }
+	/**
+	 * Sets the protocol version used.
+	 * 
+	 * @param version
+	 *            The protocol version used.
+	 */
+	public void setVersion(String version) {
+		this.version = version;
+	}
 
 }

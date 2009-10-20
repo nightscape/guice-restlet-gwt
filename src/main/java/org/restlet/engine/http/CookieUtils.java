@@ -46,6 +46,11 @@ import org.restlet.engine.util.DateUtils;
  * @author Jerome Louvel
  */
 public class CookieUtils {
+	
+	public CookieUtils() {
+		super();
+	}
+	
     /**
      * Appends a source string as an HTTP comment.
      * 
@@ -57,7 +62,7 @@ public class CookieUtils {
      *            The appendable destination.
      * @throws IOException
      */
-    private static StringBuilder appendValue(CharSequence value, int version,
+    private StringBuilder appendValue(CharSequence value, int version,
             StringBuilder destination) throws Exception {
         if (version == 0) {
             destination.append(value.toString());
@@ -77,7 +82,7 @@ public class CookieUtils {
      * @throws IllegalArgumentException
      *             If the Cookie contains illegal values.
      */
-    public static String format(Cookie cookie) throws IllegalArgumentException {
+    public String format(Cookie cookie) throws IllegalArgumentException {
         final StringBuilder sb = new StringBuilder();
         try {
             format(cookie, sb);
@@ -98,7 +103,7 @@ public class CookieUtils {
      * @throws IllegalArgumentException
      *             If the Cookie contains illegal values.
      */
-    public static void format(Cookie cookie, StringBuilder destination)
+    public void format(Cookie cookie, StringBuilder destination)
             throws IllegalArgumentException, Exception {
         final String name = cookie.getName();
         final String value = cookie.getValue();
@@ -140,7 +145,7 @@ public class CookieUtils {
      * @throws IllegalArgumentException
      *             If the CookieSetting can not be formatted to a String
      */
-    public static String format(CookieSetting cookieSetting)
+    public String format(CookieSetting cookieSetting)
             throws IllegalArgumentException {
         final StringBuilder sb = new StringBuilder();
 
@@ -164,7 +169,7 @@ public class CookieUtils {
      * @throws IllegalArgumentException
      *             If the CookieSetting can not be formatted to a String
      */
-    public static void format(CookieSetting cookieSetting,
+    public void format(CookieSetting cookieSetting,
             StringBuilder destination) throws Exception,
             IllegalArgumentException {
         final String name = cookieSetting.getName();
@@ -263,7 +268,7 @@ public class CookieUtils {
      * @throws IllegalArgumentException
      *             If one of the Cookies contains illegal values
      */
-    public static String format(List<Cookie> cookies)
+    public String format(List<Cookie> cookies)
             throws IllegalArgumentException {
         final StringBuilder sb = new StringBuilder();
 
@@ -299,7 +304,7 @@ public class CookieUtils {
      * @param destination
      *            The cookies map controlling the reading.
      */
-    public static void getCookies(List<Cookie> source,
+    public void getCookies(List<Cookie> source,
             Map<String, Cookie> destination) {
         Cookie cookie;
 

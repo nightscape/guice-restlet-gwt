@@ -30,6 +30,7 @@
 
 package org.restlet.engine.http;
 
+import org.restlet.Context;
 import org.restlet.Uniform;
 import org.restlet.Client;
 import org.restlet.data.Request;
@@ -65,12 +66,13 @@ public abstract class HttpClientHelper extends ClientHelper {
     /**
      * Constructor.
      * 
-     * @param client
+     * @param context
      *            The client to help.
      */
-    public HttpClientHelper(Client client) {
-        super(client);
+    public HttpClientHelper(Context context,int timeOut, HttpClientConverterFactory clientConverterFactory) {
+        super(context,timeOut);
         this.converter = null;
+        this.clientConverterFactory = clientConverterFactory;
     }
 
     /**
@@ -81,6 +83,7 @@ public abstract class HttpClientHelper extends ClientHelper {
      * @return A low-level HTTP client call.
      */
     public abstract HttpClientCall create(Request request);
+    protected final HttpClientConverterFactory clientConverterFactory;
 
     /**
      * Returns the converter from uniform calls to HTTP calls.
@@ -89,7 +92,7 @@ public abstract class HttpClientHelper extends ClientHelper {
      */
     public HttpClientConverter getConverter() throws Exception {
         if (this.converter == null) {
-            this.converter = new HttpClientConverter(getContext());
+            this.converter = clientConverterFactory.createClientConverter(getContext());
         }
 
         return this.converter;
