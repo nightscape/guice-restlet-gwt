@@ -30,10 +30,7 @@
 
 package org.restlet;
 
-import java.util.List;
-
 import org.restlet.data.Method;
-import org.restlet.data.Protocol;
 import org.restlet.data.Reference;
 import org.restlet.data.Request;
 import org.restlet.data.RequestFactory;
@@ -50,68 +47,65 @@ import com.google.inject.Inject;
  * 
  * @author Jerome Louvel
  */
-public class Client extends Connector {
+public class Client extends RestletImpl {
 	/**
 	 * The number of milliseconds the client should wait for a response before
 	 * aborting the request and setting its status to an error status.
 	 */
-	private int							connectTimeout	= 0;
+	private int						connectTimeout	= 0;
 
 	/** The helper provided by the implementation. */
-	private Helper<Context>	helper;
-	
-	private final RequestFactory requestFactory;
+	private Helper<Context>			helper;
+
+	private final RequestFactory	requestFactory;
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param context
-	 *          The context.
-	 * @param protocols
-	 *          The connector protocols.
+	 *            The context.
 	 */
 	@Inject
-	public Client(Context context, List<Protocol> protocols, Helper<Context> helper, RequestFactory requestFactory) {
-		super(context, protocols);
+	public Client(Context context, Helper<Context> helper,
+			RequestFactory requestFactory) {
+		super(context);
 		this.requestFactory = requestFactory;
-		if ((protocols != null) && (protocols.size() > 0)) {
-			this.helper = helper;
-		}
+		this.helper = helper;
 	}
-
-
 
 	/**
 	 * Deletes the identified resource.
 	 * 
 	 * @param resourceRef
-	 *          The reference of the resource to delete.
+	 *            The reference of the resource to delete.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void delete(Reference resourceRef, Uniform callback) {
-		handle(requestFactory.createRequest(Method.DELETE, resourceRef), callback);
+		handle(requestFactory.createRequest(Method.DELETE, resourceRef),
+				callback);
 	}
 
 	/**
 	 * Deletes the identified resource.
 	 * 
 	 * @param resourceUri
-	 *          The URI of the resource to delete.
+	 *            The URI of the resource to delete.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void delete(String resourceUri, Uniform callback) {
-		handle(requestFactory.createRequest(Method.DELETE, resourceUri), callback);
+		handle(requestFactory.createRequest(Method.DELETE, resourceUri),
+				callback);
 	}
 
 	/**
 	 * Gets the identified resource.
 	 * 
 	 * @param resourceRef
-	 *          The reference of the resource to get.
+	 *            The reference of the resource to get.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void get(Reference resourceRef, Uniform callback) {
 		handle(requestFactory.createRequest(Method.GET, resourceRef), callback);
@@ -121,9 +115,9 @@ public class Client extends Connector {
 	 * Gets the identified resource.
 	 * 
 	 * @param resourceUri
-	 *          The URI of the resource to get.
+	 *            The URI of the resource to get.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void get(String resourceUri, Uniform callback) {
 		handle(requestFactory.createRequest(Method.GET, resourceUri), callback);
@@ -151,9 +145,9 @@ public class Client extends Connector {
 	 * Handles a call.
 	 * 
 	 * @param request
-	 *          The request to handle.
+	 *            The request to handle.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void handle(Request request, Uniform callback) {
 		final Response response = new Response(request);
@@ -164,11 +158,11 @@ public class Client extends Connector {
 	 * Handles a call.
 	 * 
 	 * @param request
-	 *          The request to handle.
+	 *            The request to handle.
 	 * @param response
-	 *          The response to update.
+	 *            The response to update.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public void handle(Request request, Response response, Uniform callback) {
 		super.handle(request, response, callback);
@@ -182,9 +176,9 @@ public class Client extends Connector {
 	 * Gets the identified resource without its representation's content.
 	 * 
 	 * @param resourceRef
-	 *          The reference of the resource to get.
+	 *            The reference of the resource to get.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void head(Reference resourceRef, Uniform callback) {
 		handle(requestFactory.createRequest(Method.HEAD, resourceRef), callback);
@@ -194,9 +188,9 @@ public class Client extends Connector {
 	 * Gets the identified resource without its representation's content.
 	 * 
 	 * @param resourceUri
-	 *          The URI of the resource to get.
+	 *            The URI of the resource to get.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void head(String resourceUri, Uniform callback) {
 		handle(requestFactory.createRequest(Method.HEAD, resourceUri), callback);
@@ -206,83 +200,83 @@ public class Client extends Connector {
 	 * Gets the options for the identified resource.
 	 * 
 	 * @param resourceRef
-	 *          The reference of the resource to get.
+	 *            The reference of the resource to get.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void options(Reference resourceRef, Uniform callback) {
-		handle(requestFactory.createRequest(Method.OPTIONS, resourceRef), callback);
+		handle(requestFactory.createRequest(Method.OPTIONS, resourceRef),
+				callback);
 	}
 
 	/**
 	 * Gets the options for the identified resource.
 	 * 
 	 * @param resourceUri
-	 *          The URI of the resource to get.
+	 *            The URI of the resource to get.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void options(String resourceUri, Uniform callback) {
-		handle(requestFactory.createRequest(Method.OPTIONS, resourceUri), callback);
+		handle(requestFactory.createRequest(Method.OPTIONS, resourceUri),
+				callback);
 	}
-
-
 
 	/**
 	 * Posts a representation to the identified resource.
 	 * 
 	 * @param resourceUri
-	 *          The URI of the resource to post to.
+	 *            The URI of the resource to post to.
 	 * @param entity
-	 *          The entity to post.
+	 *            The entity to post.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void post(String resourceUri, Representation entity,
 			Uniform callback) {
-		handle(requestFactory.createRequest(Method.POST, resourceUri, entity), callback);
+		handle(requestFactory.createRequest(Method.POST, resourceUri, entity),
+				callback);
 	}
 
 	/**
 	 * Posts a representation to the identified resource.
 	 * 
 	 * @param resourceUri
-	 *          The URI of the resource to modify.
+	 *            The URI of the resource to modify.
 	 * @param entity
-	 *          The entity to post.
+	 *            The entity to post.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void post(String resourceUri, String entity, Uniform callback) {
 		post(resourceUri, new StringRepresentation(entity), callback);
 	}
 
-
-
 	/**
 	 * Puts a representation in the identified resource.
 	 * 
 	 * @param resourceUri
-	 *          The URI of the resource to modify.
+	 *            The URI of the resource to modify.
 	 * @param entity
-	 *          The entity to put.
+	 *            The entity to put.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void put(String resourceUri, Representation entity,
 			Uniform callback) {
-		handle(requestFactory.createRequest(Method.PUT, resourceUri, entity), callback);
+		handle(requestFactory.createRequest(Method.PUT, resourceUri, entity),
+				callback);
 	}
 
 	/**
 	 * Puts a representation in the identified resource.
 	 * 
 	 * @param resourceUri
-	 *          The URI of the resource to modify.
+	 *            The URI of the resource to modify.
 	 * @param entity
-	 *          The entity to put.
+	 *            The entity to put.
 	 * @param callback
-	 *          The callback invoked upon request completion.
+	 *            The callback invoked upon request completion.
 	 */
 	public final void put(String resourceUri, String entity, Uniform callback) {
 		put(resourceUri, new StringRepresentation(entity), callback);
@@ -292,7 +286,7 @@ public class Client extends Connector {
 	 * Sets the connection timeout.
 	 * 
 	 * @param connectTimeout
-	 *          The connection timeout.
+	 *            The connection timeout.
 	 */
 	public void setConnectTimeout(int connectTimeout) {
 		this.connectTimeout = connectTimeout;

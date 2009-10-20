@@ -30,9 +30,12 @@
 
 package org.restlet.engine.http;
 
+import java.util.Arrays;
+
 import org.restlet.Context;
 import org.restlet.Uniform;
 import org.restlet.Client;
+import org.restlet.data.Protocol;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
@@ -70,7 +73,7 @@ public abstract class HttpClientHelper extends ClientHelper {
      *            The client to help.
      */
     public HttpClientHelper(Context context,int timeOut, HttpClientConverterFactory clientConverterFactory) {
-        super(context,timeOut);
+        super(context,Arrays.asList(Protocol.HTTP,Protocol.HTTPS),timeOut);
         this.converter = null;
         this.clientConverterFactory = clientConverterFactory;
     }

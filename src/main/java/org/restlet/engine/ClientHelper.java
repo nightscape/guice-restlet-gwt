@@ -30,8 +30,11 @@
 
 package org.restlet.engine;
 
+import java.util.List;
+
 import org.restlet.Client;
 import org.restlet.Context;
+import org.restlet.data.Protocol;
 
 /**
  * Client connector helper.
@@ -52,8 +55,8 @@ public class ClientHelper extends ConnectorHelper<Context> {
 	 * @param context
 	 *            The client to help.
 	 */
-	public ClientHelper(Context context, int connectTimeout) {
-		super(context);
+	public ClientHelper(Context context, List<Protocol> protocols, int connectTimeout) {
+		super(context,protocols);
 		this.connectTimeout = connectTimeout;
 	}
 

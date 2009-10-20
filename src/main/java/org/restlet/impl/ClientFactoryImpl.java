@@ -35,7 +35,7 @@ public class ClientFactoryImpl implements ClientFactory{
 	}
 
 	public Client createClient(Context context, List<Protocol> list) {
-		return new Client(context, list, helper, requestFactory);
+		return new Client(context, helper, requestFactory);
 	}
 
 	/**

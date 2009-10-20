@@ -33,7 +33,6 @@ package org.restlet.engine;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.restlet.Connector;
 import org.restlet.Context;
 import org.restlet.data.Protocol;
 
@@ -49,9 +48,9 @@ public abstract class ConnectorHelper<T extends Context> extends AbstractHelper<
     /**
      * Constructor.
      */
-    public ConnectorHelper(T connector) {
+    public ConnectorHelper(T connector, List<Protocol> protocols) {
         super(connector);
-        this.protocols = new ArrayList<Protocol>();
+        this.protocols = protocols;
     }
 
     @Override
