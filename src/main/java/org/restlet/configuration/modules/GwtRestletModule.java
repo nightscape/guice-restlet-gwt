@@ -1,4 +1,4 @@
-package org.restlet.configuration;
+package org.restlet.configuration.modules;
 
 import java.util.Arrays;
 import java.util.List;

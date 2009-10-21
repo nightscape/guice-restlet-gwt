@@ -1,4 +1,4 @@
-package org.restlet.configuration;
+package org.restlet.configuration.annotations;
 
 import com.google.inject.BindingAnnotation;
 import java.lang.annotation.Target;
@@ -9,4 +9,4 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
 @BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
-public @interface TimeOut {}
+public @interface Address {}

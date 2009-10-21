@@ -32,7 +32,7 @@ package org.restlet.engine.http;
 
 import org.restlet.Client;
 import org.restlet.Context;
-import org.restlet.configuration.TimeOut;
+import org.restlet.configuration.annotations.TimeOut;
 import org.restlet.data.Protocol;
 import org.restlet.data.Request;
 

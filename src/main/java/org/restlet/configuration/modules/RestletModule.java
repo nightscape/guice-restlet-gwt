@@ -1,8 +1,9 @@
-package org.restlet.configuration;
+package org.restlet.configuration.modules;
 
 import java.util.Arrays;
 import java.util.List;
 
+import org.restlet.configuration.annotations.TimeOut;
 import org.restlet.data.Protocol;
 import org.restlet.data.RequestFactory;
 import org.restlet.data.impl.RequestFactoryImpl;
@@ -26,6 +27,7 @@ public class RestletModule extends AbstractGinModule {
 
 	@Override
 	protected void configure() {
+		install(new ClientInfoModule());
 		bind(DateUtils.class).to(DateUtilsImpl.class);
 		bind(CookieReaderFactory.class).to(CookieReaderFactoryImpl.class);
 		bind(RequestFactory.class).to(RequestFactoryImpl.class);

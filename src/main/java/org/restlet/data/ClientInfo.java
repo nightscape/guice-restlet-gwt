@@ -30,10 +30,11 @@
 
 package org.restlet.data;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.restlet.util.Engine;
+import org.restlet.configuration.annotations.Address;
+import org.restlet.configuration.annotations.Agent;
+import org.restlet.configuration.annotations.Port;
 
 import com.google.inject.Inject;
 
@@ -44,45 +45,46 @@ import com.google.inject.Inject;
  */
 public final class ClientInfo {
 	/** The character set preferences. */
-	private List<Preference<CharacterSet>>	acceptedCharacterSets;
+	private final List<Preference<CharacterSet>>	acceptedCharacterSets;
 
 	/** The encoding preferences. */
-	private List<Preference<Encoding>>		acceptedEncodings;
+	private final List<Preference<Encoding>>		acceptedEncodings;
 
 	/** The language preferences. */
-	private List<Preference<Language>>		acceptedLanguages;
+	private final List<Preference<Language>>		acceptedLanguages;
 
 	/** The media preferences. */
-	private List<Preference<MediaType>>		acceptedMediaTypes;
+	private final List<Preference<MediaType>>		acceptedMediaTypes;
 
 	/** The IP addresses. */
-	private List<String>					addresses;
+	private final List<String>					addresses;
 
 	/** The agent name. */
-	private String							agent;
+	private final String							agent;
 
 	/** The list of product tokens taken from the agent name. */
-	private List<Product>					agentProducts;
+	private final List<Product>					agentProducts;
 
 	/** The port number. */
-	private int								port;
+	private final int								port;
 
-	private Engine							engine;
 
-	/**
-	 * Constructor.
-	 */
 	@Inject
-	public ClientInfo(Engine engine) {
-		this.engine = engine;
-		this.addresses = null;
-		this.agent = null;
-		this.port = -1;
-		this.acceptedCharacterSets = null;
-		this.acceptedEncodings = null;
-		this.acceptedLanguages = null;
-		this.acceptedMediaTypes = null;
-		this.agentProducts = null;
+	public ClientInfo(List<Preference<CharacterSet>> acceptedCharacterSets,
+			List<Preference<Encoding>> acceptedEncodings,
+			List<Preference<Language>> acceptedLanguages,
+			List<Preference<MediaType>> acceptedMediaTypes,
+			@Address List<String> addresses, @Agent String agent, List<Product> agentProducts,
+			@Port int port) {
+		super();
+		this.acceptedCharacterSets = acceptedCharacterSets;
+		this.acceptedEncodings = acceptedEncodings;
+		this.acceptedLanguages = acceptedLanguages;
+		this.acceptedMediaTypes = acceptedMediaTypes;
+		this.addresses = addresses;
+		this.agent = agent;
+		this.agentProducts = agentProducts;
+		this.port = port;
 	}
 
 	/**
@@ -92,17 +94,7 @@ public final class ClientInfo {
 	 * @return The character set preferences.
 	 */
 	public List<Preference<CharacterSet>> getAcceptedCharacterSets() {
-		// Lazy initialization with double-check.
-		List<Preference<CharacterSet>> a = this.acceptedCharacterSets;
-		if (a == null) {
-			synchronized (this) {
-				a = this.acceptedCharacterSets;
-				if (a == null) {
-					this.acceptedCharacterSets = a = new ArrayList<Preference<CharacterSet>>();
-				}
-			}
-		}
-		return a;
+		return this.acceptedCharacterSets;
 	}
 
 	/**
@@ -112,17 +104,7 @@ public final class ClientInfo {
 	 * @return The encoding preferences.
 	 */
 	public List<Preference<Encoding>> getAcceptedEncodings() {
-		// Lazy initialization with double-check.
-		List<Preference<Encoding>> a = this.acceptedEncodings;
-		if (a == null) {
-			synchronized (this) {
-				a = this.acceptedEncodings;
-				if (a == null) {
-					this.acceptedEncodings = a = new ArrayList<Preference<Encoding>>();
-				}
-			}
-		}
-		return a;
+		return this.acceptedEncodings;
 	}
 
 	/**
@@ -132,17 +114,7 @@ public final class ClientInfo {
 	 * @return The language preferences.
 	 */
 	public List<Preference<Language>> getAcceptedLanguages() {
-		// Lazy initialization with double-check.
-		List<Preference<Language>> a = this.acceptedLanguages;
-		if (a == null) {
-			synchronized (this) {
-				a = this.acceptedLanguages;
-				if (a == null) {
-					this.acceptedLanguages = a = new ArrayList<Preference<Language>>();
-				}
-			}
-		}
-		return a;
+		return this.acceptedLanguages;
 	}
 
 	/**
@@ -152,17 +124,7 @@ public final class ClientInfo {
 	 * @return The media type preferences.
 	 */
 	public List<Preference<MediaType>> getAcceptedMediaTypes() {
-		// Lazy initialization with double-check.
-		List<Preference<MediaType>> a = this.acceptedMediaTypes;
-		if (a == null) {
-			synchronized (this) {
-				a = this.acceptedMediaTypes;
-				if (a == null) {
-					this.acceptedMediaTypes = a = new ArrayList<Preference<MediaType>>();
-				}
-			}
-		}
-		return a;
+		return this.acceptedMediaTypes;
 	}
 
 	/**
@@ -190,17 +152,7 @@ public final class ClientInfo {
 	 * @return The client IP addresses.
 	 */
 	public List<String> getAddresses() {
-		// Lazy initialization with double-check.
-		List<String> a = this.addresses;
-		if (a == null) {
-			synchronized (this) {
-				a = this.addresses;
-				if (a == null) {
-					this.addresses = a = new ArrayList<String>();
-				}
-			}
-		}
-		return a;
+		return this.addresses;
 	}
 
 	/**
@@ -218,9 +170,6 @@ public final class ClientInfo {
 	 * @return The list of product tokens from the user agent name.
 	 */
 	public List<Product> getAgentProducts() {
-		if (this.agentProducts == null) {
-			this.agentProducts = engine.parseUserAgent(getAgent());
-		}
 		return this.agentProducts;
 	}
 
@@ -234,92 +183,5 @@ public final class ClientInfo {
 		return this.port;
 	}
 
-	/**
-	 * Sets the character set preferences.
-	 * 
-	 * @param acceptedCharacterSets
-	 *            The character set preferences.
-	 */
-	public void setAcceptedCharacterSets(
-			List<Preference<CharacterSet>> acceptedCharacterSets) {
-		this.acceptedCharacterSets = acceptedCharacterSets;
-	}
-
-	/**
-	 * Sets the encoding preferences.
-	 * 
-	 * @param acceptedEncodings
-	 *            The encoding preferences.
-	 */
-	public void setAcceptedEncodings(
-			List<Preference<Encoding>> acceptedEncodings) {
-		this.acceptedEncodings = acceptedEncodings;
-	}
-
-	/**
-	 * Sets the language preferences.
-	 * 
-	 * @param acceptedLanguages
-	 *            The language preferences.
-	 */
-	public void setAcceptedLanguages(
-			List<Preference<Language>> acceptedLanguages) {
-		this.acceptedLanguages = acceptedLanguages;
-	}
-
-	/**
-	 * Sets the media type preferences.
-	 * 
-	 * @param acceptedMediaTypes
-	 *            The media type preferences.
-	 */
-	public void setAcceptedMediaTypes(
-			List<Preference<MediaType>> acceptedMediaTypes) {
-		this.acceptedMediaTypes = acceptedMediaTypes;
-	}
-
-	/**
-	 * Sets the client's IP address.
-	 * 
-	 * @param address
-	 *            The client's IP address.
-	 */
-	public void setAddress(String address) {
-		if (getAddresses().isEmpty()) {
-			getAddresses().add(address);
-		} else {
-			getAddresses().set(0, address);
-		}
-	}
-
-	/**
-	 * Sets the list of client IP addresses.
-	 * 
-	 * @param addresses
-	 *            The list of client IP addresses.
-	 */
-	public void setAddresses(List<String> addresses) {
-		this.addresses = addresses;
-	}
-
-	/**
-	 * Sets the agent name (ex: "Noelios Restlet Engine/1.1").
-	 * 
-	 * @param agent
-	 *            The agent name.
-	 */
-	public void setAgent(String agent) {
-		this.agent = agent;
-	}
-
-	/**
-	 * Sets the port number which sent the call.
-	 * 
-	 * @param port
-	 *            The port number which sent the call.
-	 */
-	public void setPort(int port) {
-		this.port = port;
-	}
 
 }
