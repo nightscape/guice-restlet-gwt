@@ -38,6 +38,8 @@ import org.restlet.data.CookieSetting;
 import org.restlet.data.Parameter;
 import org.restlet.engine.util.DateUtils;
 
+import com.google.inject.Inject;
+
 /**
  * Cookie header reader.
  * 
@@ -78,16 +80,20 @@ public class CookieReader extends HeaderReader {
     /** The global cookie specification version. */
     private int globalVersion;
 
+	private DateUtils	dateUtils;
+
     /**
      * Constructor.
      * 
      * @param header
      *            The header to read.
      */
-    public CookieReader(String header) {
+    @Inject
+    public CookieReader(String header, DateUtils dateUtils) {
         super(header);
         this.cachedPair = null;
         this.globalVersion = -1;
+        this.dateUtils = dateUtils;
     }
 
     /**
@@ -188,21 +194,21 @@ public class CookieReader extends HeaderReader {
                 result.setMaxAge(-1);
             } else if (pair.getName().equalsIgnoreCase(NAME_SET_EXPIRES)) {
                 final Date current = new Date(System.currentTimeMillis());
-                Date expires = DateUtils.parse(pair.getValue(),
+                Date expires = dateUtils.parse(pair.getValue(),
                         DateUtils.FORMAT_RFC_1036);
 
                 if (expires == null) {
-                    expires = DateUtils.parse(pair.getValue(),
+                    expires = dateUtils.parse(pair.getValue(),
                             DateUtils.FORMAT_RFC_1123);
                 }
 
                 if (expires == null) {
-                    expires = DateUtils.parse(pair.getValue(),
+                    expires = dateUtils.parse(pair.getValue(),
                             DateUtils.FORMAT_ASC_TIME);
                 }
 
                 if (expires != null) {
-                    if (DateUtils.after(current, expires)) {
+                    if (dateUtils.after(current, expires)) {
                         result.setMaxAge((int) ((expires.getTime() - current
                                 .getTime()) / 1000));
                     } else {

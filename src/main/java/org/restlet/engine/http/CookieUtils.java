@@ -40,6 +40,8 @@ import org.restlet.data.Cookie;
 import org.restlet.data.CookieSetting;
 import org.restlet.engine.util.DateUtils;
 
+import com.google.inject.Inject;
+
 /**
  * Cookie manipulation utilities.
  * 
@@ -47,8 +49,12 @@ import org.restlet.engine.util.DateUtils;
  */
 public class CookieUtils {
 	
-	public CookieUtils() {
+	private DateUtils	dateUtils;
+
+	@Inject
+	public CookieUtils(DateUtils dateUtils) {
 		super();
+		this.dateUtils = dateUtils;
 	}
 	
     /**
@@ -214,7 +220,7 @@ public class CookieUtils {
                     final long expiresTime = currentTime + maxTime;
                     final Date expires = new Date(expiresTime);
                     destination.append("; Expires=");
-                    appendValue(DateUtils.format(expires,
+                    appendValue(dateUtils.format(expires,
                             DateUtils.FORMAT_RFC_1036.get(0)), version,
                             destination);
                 } else {

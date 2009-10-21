@@ -49,9 +49,11 @@ import org.restlet.data.Product;
 import org.restlet.data.Response;
 import org.restlet.engine.http.ContentType;
 import org.restlet.engine.http.CookieReader;
+import org.restlet.engine.http.CookieReaderFactory;
 import org.restlet.engine.http.CookieUtils;
 import org.restlet.engine.http.HttpClientConverter;
 import org.restlet.engine.http.HttpUtils;
+import org.restlet.engine.http.ResponseTransportHeaderCopier;
 import org.restlet.engine.http.Util;
 import org.restlet.engine.util.FormUtils;
 import org.restlet.representation.Representation;
@@ -79,6 +81,8 @@ public class Engine extends org.restlet.util.Engine {
 	/** List of available client connectors. */
 	private List<ClientHelper> registeredClients;
 	private CookieUtils	cookieUtils;
+	private CookieReaderFactory	cookieReaderFactory;
+	private ResponseTransportHeaderCopier	headerCopier;
 
 
 
@@ -89,9 +93,11 @@ public class Engine extends org.restlet.util.Engine {
 	 *            True if helpers should be automatically discovered.
 	 */
 	@Inject
-	public Engine(Util util,List<ClientHelper> clientHelpers) {
+	public Engine(Util util,List<ClientHelper> clientHelpers, CookieReaderFactory cookieReaderFactory, ResponseTransportHeaderCopier headerCopier) {
 		this.registeredClients = clientHelpers;
 		this.util = util;
+		this.cookieReaderFactory = cookieReaderFactory;
+		this.headerCopier = headerCopier;
 	}
 
 	/**
@@ -108,7 +114,7 @@ public class Engine extends org.restlet.util.Engine {
 	@Override
 	public void copyResponseHeaders(Iterable<Parameter> responseHeaders,
 			Response response) {
-		HttpClientConverter.copyResponseTransportHeaders(responseHeaders,
+		headerCopier.copyResponseTransportHeaders(responseHeaders,
 				response);
 		util.copyResponseEntityHeaders(responseHeaders, response
 				.getEntity());
@@ -562,7 +568,7 @@ public class Engine extends org.restlet.util.Engine {
 
 	@Override
 	public Cookie parseCookie(String cookie) throws IllegalArgumentException {
-		final CookieReader cr = new CookieReader(cookie);
+		final CookieReader cr = cookieReaderFactory.getCookieReader(cookie);
 		try {
 			return cr.readCookie();
 		} catch (Exception e) {
@@ -573,7 +579,7 @@ public class Engine extends org.restlet.util.Engine {
 	@Override
 	public CookieSetting parseCookieSetting(String cookieSetting)
 			throws IllegalArgumentException {
-		final CookieReader cr = new CookieReader(cookieSetting);
+		final CookieReader cr = cookieReaderFactory.getCookieReader(cookieSetting);
 		try {
 			return cr.readCookieSetting();
 		} catch (Exception e) {

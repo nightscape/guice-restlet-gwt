@@ -73,7 +73,7 @@ public abstract class HttpClientHelper extends ClientHelper {
      *            The client to help.
      */
     public HttpClientHelper(Context context,int timeOut, HttpClientConverterFactory clientConverterFactory) {
-        super(context,Arrays.asList(Protocol.HTTP,Protocol.HTTPS),timeOut);
+        super(context,Arrays.asList(Protocol.HTTP),timeOut);
         this.converter = null;
         this.clientConverterFactory = clientConverterFactory;
     }

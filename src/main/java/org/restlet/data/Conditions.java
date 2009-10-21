@@ -38,6 +38,8 @@ import java.util.List;
 import org.restlet.engine.util.DateUtils;
 import org.restlet.representation.Representation;
 
+import com.google.inject.Inject;
+
 /**
  * Set of conditions applying to a request. This is equivalent to the HTTP
  * conditional headers.
@@ -58,265 +60,287 @@ import org.restlet.representation.Representation;
  * @author Jerome Louvel
  */
 public final class Conditions {
-    /** The "if-match" condition */
-    private List<Tag> match;
+	/** The "if-match" condition */
+	private List<Tag>	match;
 
-    /** The "if-modified-since" condition */
-    private Date modifiedSince;
+	/** The "if-modified-since" condition */
+	private Date		modifiedSince;
 
-    /** The "if-none-match" condition */
-    private List<Tag> noneMatch;
+	/** The "if-none-match" condition */
+	private List<Tag>	noneMatch;
 
-    /** The "if-unmodified-since" condition */
-    private Date unmodifiedSince;
+	/** The "if-unmodified-since" condition */
+	private Date		unmodifiedSince;
 
-    /**
-     * Constructor.
-     */
-    public Conditions() {
-    }
+	private DateUtils	dateUtils;
 
-    /**
-     * Returns the modifiable list of tags for the "if-match" condition. Creates
-     * a new instance if no one has been set.
-     * 
-     * @return The "if-match" condition.
-     */
-    public List<Tag> getMatch() {
-        // Lazy initialization with double-check.
-        List<Tag> m = this.match;
-        if (m == null) {
-            synchronized (this) {
-                m = this.match;
-                if (m == null) {
-                    this.match = m = new ArrayList<Tag>();
-                }
-            }
-        }
-        return m;
-    }
+	/**
+	 * Constructor.
+	 */
+	@Inject
+	public Conditions(DateUtils dateUtils) {
+		this.dateUtils = dateUtils;
+	}
 
-    /**
-     * Returns the "if-modified-since" condition.
-     * 
-     * @return The "if-modified-since" condition.
-     */
-    public Date getModifiedSince() {
-        return this.modifiedSince;
-    }
+	/**
+	 * Returns the modifiable list of tags for the "if-match" condition. Creates
+	 * a new instance if no one has been set.
+	 * 
+	 * @return The "if-match" condition.
+	 */
+	public List<Tag> getMatch() {
+		// Lazy initialization with double-check.
+		List<Tag> m = this.match;
+		if (m == null) {
+			synchronized (this) {
+				m = this.match;
+				if (m == null) {
+					this.match = m = new ArrayList<Tag>();
+				}
+			}
+		}
+		return m;
+	}
 
-    /**
-     * Returns the modifiable list of tags for the "if-none-match" condition.
-     * Creates a new instance if no one has been set.
-     * 
-     * @return The "if-none-match" condition.
-     */
-    public List<Tag> getNoneMatch() {
-        // Lazy initialization with double-check.
-        List<Tag> n = this.noneMatch;
-        if (n == null) {
-            synchronized (this) {
-                n = this.noneMatch;
-                if (n == null) {
-                    this.noneMatch = n = new ArrayList<Tag>();
-                }
-            }
-        }
-        return n;
-    }
+	/**
+	 * Returns the "if-modified-since" condition.
+	 * 
+	 * @return The "if-modified-since" condition.
+	 */
+	public Date getModifiedSince() {
+		return this.modifiedSince;
+	}
 
-    /**
-     * Returns the conditional status of a variant using a given method.
-     * 
-     * @param method
-     *            The request method.
-     * @param representation
-     *            The representation whose entity tag or date of modification
-     *            will be tested
-     * @return Null if the requested method can be performed, the status of the
-     *         response otherwise.
-     */
-    public Status getStatus(Method method, Representation representation) {
-        Status result = null;
+	/**
+	 * Returns the modifiable list of tags for the "if-none-match" condition.
+	 * Creates a new instance if no one has been set.
+	 * 
+	 * @return The "if-none-match" condition.
+	 */
+	public List<Tag> getNoneMatch() {
+		// Lazy initialization with double-check.
+		List<Tag> n = this.noneMatch;
+		if (n == null) {
+			synchronized (this) {
+				n = this.noneMatch;
+				if (n == null) {
+					this.noneMatch = n = new ArrayList<Tag>();
+				}
+			}
+		}
+		return n;
+	}
 
-        // Is the "if-Match" rule followed or not?
-        if ((this.match != null) && !this.match.isEmpty()) {
-            boolean matched = false;
-            boolean failed = false;
-            final boolean all = getMatch().get(0).equals(Tag.ALL);
+	/**
+	 * Returns the conditional status of a variant using a given method.
+	 * 
+	 * @param method
+	 *            The request method.
+	 * @param representation
+	 *            The representation whose entity tag or date of modification
+	 *            will be tested
+	 * @return Null if the requested method can be performed, the status of the
+	 *         response otherwise.
+	 */
+	public Status getStatus(Method method, Representation representation) {
+		Status result = getIfMatchStatus(representation);
 
-            if (representation != null) {
-                // If a tag exists
-                if (!all && (representation.getTag() != null)) {
-                    // Check if it matches one of the representations already
-                    // cached by the client
-                    Tag tag;
+		if (result == null) {
+			result = getIfNoneMatchStatus(method, representation);
+		}
+		
+		if (result == null) { 
+			result = getIfModifiedSinceStatus(representation);
+		}
 
-                    for (final Iterator<Tag> iter = getMatch().iterator(); !matched
-                            && iter.hasNext();) {
-                        tag = iter.next();
-                        matched = tag.equals(representation.getTag(), false);
-                    }
-                } else {
-                    matched = all;
-                }
-            } else {
-                // See
-                //http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.24
-                // If none of the entity tags match, or if "*" is given and no
-                // current entity exists, the server MUST NOT perform the
-                // requested method
-                failed = all;
-            }
+		
+		if (result == null) {
+			result = getIfUnmodifiedSinceStatus(representation);
+		}
 
-            failed = failed || !matched;
+		return result;
+	}
+	/** Is the "if-Unmodified-Since" rule followed or not? **/
+	private Status getIfUnmodifiedSinceStatus(Representation representation) {
+		Status result = null;
+		if (representation != null && getUnmodifiedSince() != null) {
+			final Date unModifiedSince = getUnmodifiedSince();
+			final boolean isUnModifiedSince = ((unModifiedSince == null)
+					|| (representation.getModificationDate() == null) || dateUtils
+					.after(representation.getModificationDate(),
+							unModifiedSince));
 
-            if (failed) {
-                result = Status.CLIENT_ERROR_PRECONDITION_FAILED;
-            }
-        }
+			if (!isUnModifiedSince) {
+				result = Status.CLIENT_ERROR_PRECONDITION_FAILED;
+			}
+		}
+		return result;
+	}
+	/** Is the "if-Modified-Since" rule followed or not? **/
+	private Status getIfModifiedSinceStatus(Representation representation) {
+		Status result = null;
+		if(getModifiedSince() != null && representation != null) {
+			final Date modifiedSince = getModifiedSince();
+			final boolean isModifiedSince = (dateUtils.after(new Date(),
+					modifiedSince)
+					|| (representation.getModificationDate() == null) || dateUtils
+					.after(modifiedSince, representation.getModificationDate()));
 
-        // Is the "if-None-Match" rule followed or not?
-        if ((result == null) && (this.noneMatch != null)
-                && !this.noneMatch.isEmpty()) {
-            boolean matched = false;
+			if (!isModifiedSince) {
+				result = Status.REDIRECTION_NOT_MODIFIED;
+			}
+		}
+		return result;
+	}
 
-            if (representation != null) {
-                // If a tag exists
-                if (representation.getTag() != null) {
-                    // Check if it matches one of the representations
-                    // already cached by the client
-                    Tag tag;
+	/** Is the "if-None-Match" rule followed or not? **/
+	private Status getIfNoneMatchStatus(Method method,
+			Representation representation) {
+		Status result = null;
+		if ((this.noneMatch != null) && !this.noneMatch.isEmpty()) {
 
-                    for (final Iterator<Tag> iter = getNoneMatch().iterator(); !matched
-                            && iter.hasNext();) {
-                        tag = iter.next();
-                        matched = tag.equals(representation.getTag(),
-                                (Method.GET.equals(method) || Method.HEAD
-                                        .equals(method)));
-                    }
+			boolean matched = false;
 
-                    // The current representation matches one of those already
-                    // cached by the client
-                    if (matched) {
-                        // Check if the current representation has been updated
-                        // since the "if-modified-since" date. In this case, the
-                        // rule is followed.
-                        final Date modifiedSince = getModifiedSince();
-                        final boolean isModifiedSince = (modifiedSince != null)
-                                && (DateUtils.after(new Date(), modifiedSince)
-                                        || (representation
-                                                .getModificationDate() == null) || DateUtils
-                                        .after(modifiedSince, representation
-                                                .getModificationDate()));
-                        matched = !isModifiedSince;
-                    }
-                }
-            } else {
-                matched = getNoneMatch().get(0).equals(Tag.ALL);
-            }
+			if (representation != null) {
+				// If a tag exists
+				if (representation.getTag() != null) {
+					// Check if it matches one of the representations
+					// already cached by the client
 
-            if (matched) {
-                if (Method.GET.equals(method) || Method.HEAD.equals(method)) {
-                    result = Status.REDIRECTION_NOT_MODIFIED;
-                } else {
-                    result = Status.CLIENT_ERROR_PRECONDITION_FAILED;
-                }
-            }
-        }
+					for (Tag tag : getNoneMatch()) {
+						matched = tag.equals(representation.getTag(),
+								(Method.GET.equals(method) || Method.HEAD
+										.equals(method)));
+					}
 
-        // Is the "if-Modified-Since" rule followed or not?
-        if ((result == null) && (getModifiedSince() != null)) {
-            if (representation != null) {
-                final Date modifiedSince = getModifiedSince();
-                final boolean isModifiedSince = (DateUtils.after(new Date(),
-                        modifiedSince)
-                        || (representation.getModificationDate() == null) || DateUtils
-                        .after(modifiedSince, representation
-                                .getModificationDate()));
+					// The current representation matches one of those already
+					// cached by the client
+					if (matched) {
+						// Check if the current representation has been updated
+						// since the "if-modified-since" date. In this case, the
+						// rule is followed.
+						final Date modifiedSince = getModifiedSince();
+						final boolean isModifiedSince = (modifiedSince != null)
+								&& (dateUtils.after(new Date(), modifiedSince)
+										|| (representation
+												.getModificationDate() == null) || dateUtils
+										.after(modifiedSince, representation
+												.getModificationDate()));
+						matched = !isModifiedSince;
+					}
+				}
+			} else {
+				matched = getNoneMatch().get(0).equals(Tag.ALL);
+			}
 
-                if (!isModifiedSince) {
-                    result = Status.REDIRECTION_NOT_MODIFIED;
-                }
-            }
-        }
+			if (matched) {
+				if (Method.GET.equals(method) || Method.HEAD.equals(method)) {
+					result = Status.REDIRECTION_NOT_MODIFIED;
+				} else {
+					result = Status.CLIENT_ERROR_PRECONDITION_FAILED;
+				}
+			}
+		}
+		return result;
+	}
 
-        // Is the "if-Unmodified-Since" rule followed or not?
-        if ((result == null) && (getUnmodifiedSince() != null)) {
-            if (representation != null) {
-                final Date unModifiedSince = getUnmodifiedSince();
-                final boolean isUnModifiedSince = ((unModifiedSince == null)
-                        || (representation.getModificationDate() == null) || DateUtils
-                        .after(representation.getModificationDate(),
-                                unModifiedSince));
+	private Status getIfMatchStatus(Representation representation) {
+		Status result = null;
 
-                if (!isUnModifiedSince) {
-                    result = Status.CLIENT_ERROR_PRECONDITION_FAILED;
-                }
-            }
-        }
+		// Is the "if-Match" rule followed or not?
+		if ((this.match != null) && !this.match.isEmpty()) {
+			boolean matched = false;
+			boolean failed = false;
+			final boolean all = getMatch().get(0).equals(Tag.ALL);
 
-        return result;
-    }
+			if (representation != null) {
+				// If a tag exists
+				if (!all && (representation.getTag() != null)) {
+					// Check if it matches one of the representations already
+					// cached by the client
 
-    /**
-     * Returns the "if-unmodified-since" condition.
-     * 
-     * @return The "if-unmodified-since" condition.
-     */
-    public Date getUnmodifiedSince() {
-        return this.unmodifiedSince;
-    }
+					for (Tag tag : getMatch()) {
+						matched = tag.equals(representation.getTag(), false);
+					}
+				} else {
+					matched = all;
+				}
+			} else {
+				// See
+				// http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.24
+				// If none of the entity tags match, or if "*" is given and no
+				// current entity exists, the server MUST NOT perform the
+				// requested method
+				failed = all;
+			}
 
-    /**
-     * Indicates if there are some conditions set.
-     * 
-     * @return True if there are some conditions set.
-     */
-    public boolean hasSome() {
-        return (((this.match != null) && !this.match.isEmpty())
-                || ((this.noneMatch != null) && !this.noneMatch.isEmpty())
-                || (getModifiedSince() != null) || (getUnmodifiedSince() != null));
-    }
+			failed = failed || !matched;
 
-    /**
-     * Sets the "if-match" condition.
-     * 
-     * @param tags
-     *            The "if-match" condition.
-     */
-    public void setMatch(List<Tag> tags) {
-        this.match = tags;
-    }
+			if (failed) {
+				result = Status.CLIENT_ERROR_PRECONDITION_FAILED;
+			}
+		}
+		return result;
+	}
 
-    /**
-     * Sets the "if-modified-since" condition.
-     * 
-     * @param date
-     *            The "if-modified-since" condition.
-     */
-    public void setModifiedSince(Date date) {
-        this.modifiedSince = DateUtils.unmodifiable(date);
-    }
+	/**
+	 * Returns the "if-unmodified-since" condition.
+	 * 
+	 * @return The "if-unmodified-since" condition.
+	 */
+	public Date getUnmodifiedSince() {
+		return this.unmodifiedSince;
+	}
 
-    /**
-     * Sets the "if-none-match" condition.
-     * 
-     * @param tags
-     *            The "if-none-match" condition.
-     */
-    public void setNoneMatch(List<Tag> tags) {
-        this.noneMatch = tags;
-    }
+	/**
+	 * Indicates if there are some conditions set.
+	 * 
+	 * @return True if there are some conditions set.
+	 */
+	public boolean hasSome() {
+		return (((this.match != null) && !this.match.isEmpty())
+				|| ((this.noneMatch != null) && !this.noneMatch.isEmpty())
+				|| (getModifiedSince() != null) || (getUnmodifiedSince() != null));
+	}
 
-    /**
-     * Sets the "if-unmodified-since" condition.
-     * 
-     * @param date
-     *            The "if-unmodified-since" condition.
-     */
-    public void setUnmodifiedSince(Date date) {
-        this.unmodifiedSince = DateUtils.unmodifiable(date);
-    }
+	/**
+	 * Sets the "if-match" condition.
+	 * 
+	 * @param tags
+	 *            The "if-match" condition.
+	 */
+	public void setMatch(List<Tag> tags) {
+		this.match = tags;
+	}
+
+	/**
+	 * Sets the "if-modified-since" condition.
+	 * 
+	 * @param date
+	 *            The "if-modified-since" condition.
+	 */
+	public void setModifiedSince(Date date) {
+		this.modifiedSince = dateUtils.unmodifiable(date);
+	}
+
+	/**
+	 * Sets the "if-none-match" condition.
+	 * 
+	 * @param tags
+	 *            The "if-none-match" condition.
+	 */
+	public void setNoneMatch(List<Tag> tags) {
+		this.noneMatch = tags;
+	}
+
+	/**
+	 * Sets the "if-unmodified-since" condition.
+	 * 
+	 * @param date
+	 *            The "if-unmodified-since" condition.
+	 */
+	public void setUnmodifiedSince(Date date) {
+		this.unmodifiedSince = dateUtils.unmodifiable(date);
+	}
 
 }

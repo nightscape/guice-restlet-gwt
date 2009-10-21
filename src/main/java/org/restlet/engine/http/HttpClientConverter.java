@@ -30,14 +30,11 @@
 
 package org.restlet.engine.http;
 
-import java.util.Set;
 
 import org.restlet.Uniform;
 import org.restlet.Context;
-import org.restlet.data.ChallengeRequest;
 import org.restlet.data.ClientInfo;
 import org.restlet.data.Conditions;
-import org.restlet.data.Dimension;
 import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Parameter;
@@ -46,9 +43,10 @@ import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
 import org.restlet.engine.Engine;
-import org.restlet.engine.util.AuthenticationUtils;
 import org.restlet.engine.util.DateUtils;
 import org.restlet.util.Series;
+
+import com.google.inject.Inject;
 
 /**
  * Converter of high-level uniform calls into low-level HTTP client calls.
@@ -56,87 +54,9 @@ import org.restlet.util.Series;
  * @author Jerome Louvel
  */
 public class HttpClientConverter extends HttpConverter {
-    /**
-     * Copies headers into a response.
-     * 
-     * @param headers
-     *            The headers to copy.
-     * @param response
-     *            The response to update.
-     * @see Engine#copyResponseHeaders(Iterable, Response)
-     * @see HttpClientCall#copyResponseEntityHeaders(Iterable,
-     *      org.restlet.resource.Representation)
-     */
-    public static void copyResponseTransportHeaders(
-            Iterable<Parameter> headers, Response response) {
-        // Read info from headers
-        for (final Parameter header : headers) {
-            if (header.getName()
-                    .equalsIgnoreCase(HttpConstants.HEADER_LOCATION)) {
-                response.setLocationRef(header.getValue());
-            } else if ((header.getName()
-                    .equalsIgnoreCase(HttpConstants.HEADER_SET_COOKIE))
-                    || (header.getName()
-                            .equalsIgnoreCase(HttpConstants.HEADER_SET_COOKIE2))) {
-                try {
-                    final CookieReader cr = new CookieReader(header.getValue());
-                    response.getCookieSettings().add(cr.readCookieSetting());
-                } catch (Exception e) {
-                    System.err
-                            .println("Error during cookie setting parsing. Header: "
-                                    + header.getValue());
-                }
-            } else if (header.getName().equalsIgnoreCase(
-                    HttpConstants.HEADER_WWW_AUTHENTICATE)) {
-                final ChallengeRequest request = AuthenticationUtils
-                        .parseAuthenticateHeader(header.getValue());
-                response.setChallengeRequest(request);
-            } else if (header.getName().equalsIgnoreCase(
-                    HttpConstants.HEADER_SERVER)) {
-                response.getServerInfo().setAgent(header.getValue());
-            } else if (header.getName().equalsIgnoreCase(
-                    HttpConstants.HEADER_ALLOW)) {
-                final HeaderReader hr = new HeaderReader(header.getValue());
-                String value = hr.readValue();
-                final Set<Method> allowedMethods = response.getAllowedMethods();
-                while (value != null) {
-                    allowedMethods.add(Method.valueOf(value));
-                    value = hr.readValue();
-                }
-            } else if (header.getName().equalsIgnoreCase(
-                    HttpConstants.HEADER_VARY)) {
-                final HeaderReader hr = new HeaderReader(header.getValue());
-                String value = hr.readValue();
-                final Set<Dimension> dimensions = response.getDimensions();
-                while (value != null) {
-                    if (value.equalsIgnoreCase(HttpConstants.HEADER_ACCEPT)) {
-                        dimensions.add(Dimension.MEDIA_TYPE);
-                    } else if (value
-                            .equalsIgnoreCase(HttpConstants.HEADER_ACCEPT_CHARSET)) {
-                        dimensions.add(Dimension.CHARACTER_SET);
-                    } else if (value
-                            .equalsIgnoreCase(HttpConstants.HEADER_ACCEPT_ENCODING)) {
-                        dimensions.add(Dimension.ENCODING);
-                    } else if (value
-                            .equalsIgnoreCase(HttpConstants.HEADER_ACCEPT_LANGUAGE)) {
-                        dimensions.add(Dimension.LANGUAGE);
-                    } else if (value
-                            .equalsIgnoreCase(HttpConstants.HEADER_AUTHORIZATION)) {
-                        dimensions.add(Dimension.AUTHORIZATION);
-                    } else if (value
-                            .equalsIgnoreCase(HttpConstants.HEADER_USER_AGENT)) {
-                        dimensions.add(Dimension.CLIENT_AGENT);
-                    } else if (value.equals("*")) {
-                        dimensions.add(Dimension.UNSPECIFIED);
-                    }
-
-                    value = hr.readValue();
-                }
-            }
-        }
-    }
-
 	private final CookieUtils	cookieUtils;
+	private DateUtils	dateUtils;
+	private ResponseTransportHeaderCopier	headerCopier;
 
     /**
      * Constructor.
@@ -144,9 +64,12 @@ public class HttpClientConverter extends HttpConverter {
      * @param context
      *            The context to use.
      */
-    public HttpClientConverter(Context context,CookieUtils cookieUtils) {
+	@Inject
+    public HttpClientConverter(Context context,CookieUtils cookieUtils, CookieReaderFactory cookieReaderFactory, DateUtils dateUtils, ResponseTransportHeaderCopier headerCopier) {
         super(context);
         this.cookieUtils = cookieUtils;
+        this.dateUtils = dateUtils;
+        this.headerCopier = headerCopier;
     }
 
     /**
@@ -209,7 +132,7 @@ public class HttpClientConverter extends HttpConverter {
             }
 
             if (condition.getModifiedSince() != null) {
-                final String imsDate = DateUtils.format(condition
+                final String imsDate = dateUtils.format(condition
                         .getModifiedSince(), DateUtils.FORMAT_RFC_1123.get(0));
                 requestHeaders.add(HttpConstants.HEADER_IF_MODIFIED_SINCE,
                         imsDate);
@@ -230,7 +153,7 @@ public class HttpClientConverter extends HttpConverter {
             }
 
             if (condition.getUnmodifiedSince() != null) {
-                final String iusDate = DateUtils
+                final String iusDate = dateUtils
                         .format(condition.getUnmodifiedSince(),
                                 DateUtils.FORMAT_RFC_1123.get(0));
                 requestHeaders.add(HttpConstants.HEADER_IF_UNMODIFIED_SINCE,
@@ -468,7 +391,7 @@ public class HttpClientConverter extends HttpConverter {
             // Put the response headers in the call's attributes map
             response.getAttributes().put(HttpConstants.ATTRIBUTE_HEADERS,
                     responseHeaders);
-            copyResponseTransportHeaders(responseHeaders, response);
+            headerCopier.copyResponseTransportHeaders(responseHeaders, response);
         } catch (Exception e) {
             System.err
                     .println("An error occured during the processing of the HTTP response.");

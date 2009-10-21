@@ -34,6 +34,8 @@ import org.restlet.Uniform;
 import org.restlet.data.Parameter;
 import org.restlet.data.Reference;
 import org.restlet.data.Status;
+import org.restlet.engine.util.impl.DateUtilsImpl;
+import org.restlet.engine.util.impl.DateParserGwtImpl;
 import org.restlet.representation.Representation;
 import org.restlet.util.Series;
 
@@ -84,7 +86,7 @@ public class GwtHttpClientCall extends HttpClientCall {
      */
     public GwtHttpClientCall(GwtHttpClientHelper helper, String method,
             String requestUri, boolean hasEntity) {
-        super(helper, method, requestUri, new UtilImpl(new DateHelperImpl()));
+        super(helper, method, requestUri, new UtilImpl(new DateHelperImpl(new DateUtilsImpl(new DateParserGwtImpl()))));
 
         Reference requestRef = new Reference(requestUri);
         if (requestRef.isRelative()

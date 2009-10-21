@@ -31,6 +31,7 @@
 package org.restlet.data;
 
 import java.util.List;
+import java.util.concurrent.locks.Condition;
 
 import org.restlet.Context;
 import org.restlet.representation.Representation;
@@ -131,11 +132,12 @@ public class Request extends Message {
      * @param entity
      *            The entity.
      */
-    public Request(Method method, Reference resourceRef, Representation entity,ClientInfo clientInfo) {
+    public Request(Method method, Reference resourceRef, Representation entity,ClientInfo clientInfo, Conditions conditions) {
         super(entity);
         setMethod(method);
         setResourceRef(resourceRef);
         this.clientInfo = clientInfo;
+        this.conditions = conditions;
     }
 
  
@@ -167,17 +169,7 @@ public class Request extends Message {
      * @return The conditions applying to this call.
      */
     public Conditions getConditions() {
-        // Lazy initialization with double-check.
-        Conditions c = this.conditions;
-        if (c == null) {
-            synchronized (this) {
-                c = this.conditions;
-                if (c == null) {
-                    this.conditions = c = new Conditions();
-                }
-            }
-        }
-        return c;
+        return this.conditions;
     }
 
     /**
