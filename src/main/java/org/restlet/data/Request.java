@@ -31,7 +31,6 @@
 package org.restlet.data;
 
 import java.util.List;
-import java.util.concurrent.locks.Condition;
 
 import org.restlet.Context;
 import org.restlet.representation.Representation;

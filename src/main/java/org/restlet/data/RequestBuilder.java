@@ -18,7 +18,7 @@ public class RequestBuilder {
 	public class InnerRequestBuilder {
 		private Method		method;
 		private String		uri;
-		private MediaType	format	= null;
+		private MediaType	mediaType	= null;
 		private String		content;
 
 		public InnerRequestBuilder(Method method, String uri) {
@@ -26,8 +26,8 @@ public class RequestBuilder {
 			this.uri = uri;
 		}
 
-		public InnerRequestBuilder withFormat(String format) {
-			this.format = MediaType.valueOf(format);
+		public InnerRequestBuilder withMediaType(MediaType mediaType) {
+			this.mediaType = mediaType;
 			return this;
 		}
 
@@ -38,7 +38,7 @@ public class RequestBuilder {
 
 		public Request build() {
 			return requestFactory.createRequest(method, uri,
-					new Representation(this.format) {
+					new Representation(this.mediaType) {
 
 						@Override
 						public String getText() {

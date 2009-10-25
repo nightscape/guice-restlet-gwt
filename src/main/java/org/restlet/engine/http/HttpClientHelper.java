@@ -108,7 +108,7 @@ public abstract class HttpClientHelper extends ClientHelper {
                     request);
             getConverter().commit(httpCall, request, response, callback);
         } catch (Exception e) {
-            System.err.println("Error while handling an HTTP client call");
+            System.err.println("Error while handling an HTTP client call:\n"+e.toString());
             response.setStatus(Status.CONNECTOR_ERROR_INTERNAL, e);
         }
     }
