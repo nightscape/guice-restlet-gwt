@@ -30,14 +30,11 @@
 
 package org.restlet.engine.util.impl;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import org.restlet.engine.util.DateParser;
 import org.restlet.engine.util.DateUtils;
-
 
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.inject.Inject;

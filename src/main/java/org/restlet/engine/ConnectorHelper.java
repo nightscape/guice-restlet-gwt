@@ -30,7 +30,6 @@
 
 package org.restlet.engine;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.restlet.Context;

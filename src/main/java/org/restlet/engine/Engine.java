@@ -51,7 +51,6 @@ import org.restlet.engine.http.ContentType;
 import org.restlet.engine.http.CookieReader;
 import org.restlet.engine.http.CookieReaderFactory;
 import org.restlet.engine.http.CookieUtils;
-import org.restlet.engine.http.HttpClientConverter;
 import org.restlet.engine.http.HttpUtils;
 import org.restlet.engine.http.ResponseTransportHeaderCopier;
 import org.restlet.engine.http.Util;

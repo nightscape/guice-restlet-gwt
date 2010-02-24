@@ -35,7 +35,6 @@ import java.util.List;
 
 import org.restlet.representation.Representation;
 import org.restlet.representation.StringRepresentation;
-import org.restlet.util.Engine;
 import org.restlet.util.Series;
 
 /**

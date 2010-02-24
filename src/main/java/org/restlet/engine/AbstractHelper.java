@@ -33,10 +33,8 @@ package org.restlet.engine;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.restlet.Restlet;
-import org.restlet.Uniform;
 import org.restlet.Context;
-import org.restlet.data.Form;
+import org.restlet.Uniform;
 import org.restlet.data.Parameter;
 import org.restlet.data.Request;
 import org.restlet.data.Response;

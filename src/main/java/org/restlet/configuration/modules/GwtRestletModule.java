@@ -9,7 +9,7 @@ import org.restlet.engine.Helper;
 import org.restlet.engine.http.GwtHttpClientHelper;
 
 import com.google.gwt.inject.client.AbstractGinModule;
- import com.google.inject.Inject;
+import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 

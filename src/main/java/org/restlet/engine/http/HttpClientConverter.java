@@ -31,8 +31,8 @@
 package org.restlet.engine.http;
 
 
-import org.restlet.Uniform;
 import org.restlet.Context;
+import org.restlet.Uniform;
 import org.restlet.data.ClientInfo;
 import org.restlet.data.Conditions;
 import org.restlet.data.MediaType;

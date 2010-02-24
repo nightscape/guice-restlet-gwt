@@ -34,8 +34,8 @@ import org.restlet.Uniform;
 import org.restlet.data.Parameter;
 import org.restlet.data.Reference;
 import org.restlet.data.Status;
-import org.restlet.engine.util.impl.DateUtilsImpl;
 import org.restlet.engine.util.impl.DateParserGwtImpl;
+import org.restlet.engine.util.impl.DateUtilsImpl;
 import org.restlet.representation.Representation;
 import org.restlet.util.Series;
 

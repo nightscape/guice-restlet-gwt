@@ -34,7 +34,6 @@ import java.util.Arrays;
 
 import org.restlet.Context;
 import org.restlet.Uniform;
-import org.restlet.Client;
 import org.restlet.data.Protocol;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
