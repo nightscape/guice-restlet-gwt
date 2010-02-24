@@ -50,9 +50,6 @@ public abstract class Message {
     /** The payload of the message. */
     private Representation entity;
 
-    /** The optional cached Form. */
-    private Form form;
-
     /** The optional cached JSON representation. */
     private JsonRepresentation jsonRepresentation;
 
@@ -75,7 +72,6 @@ public abstract class Message {
     public Message(Representation entity) {
         this.attributes = null;
         this.entity = entity;
-        this.form = null;
     }
 
     /**
